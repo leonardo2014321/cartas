@@ -44,9 +44,10 @@
 
   /* ---------- Mensajes ---------- */
   #mensaje{
-    position:fixed;left:0;right:0;bottom:calc(9vh + env(safe-area-inset-bottom,0px));
+    /* El texto arranca justo debajo del corazón: --txt-top la calcula el JavaScript según el tamaño de la pantalla */
+    position:fixed;left:0;right:0;top:var(--txt-top,58vh);
     z-index:2;padding:0 1.5rem;pointer-events:none;min-height:9rem;
-    display:flex;flex-direction:column;align-items:center;justify-content:flex-end;text-align:center;
+    display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;
   }
   #mensaje > *{
     opacity:0;filter:blur(10px);transform:translateY(8px);
@@ -98,7 +99,7 @@
 
   /* ---------- Botón "continuar" (aparece bajo el mensaje final) ---------- */
   /* Cuando el mensaje final trae botón, se sube un poco para dejarle su lugar debajo */
-  #mensaje.subida{bottom:calc(5.6rem + env(safe-area-inset-bottom,0px))}
+  #mensaje.subida{top:auto;bottom:calc(5.6rem + env(safe-area-inset-bottom,0px));justify-content:flex-end}
   #siguiente{
     position:fixed;z-index:4;left:50%;
     bottom:calc(1.3rem + env(safe-area-inset-bottom,0px));
@@ -131,12 +132,12 @@
   #jardin{z-index:1;opacity:0;transition:opacity 2.4s ease .5s}
   body.jardin #jardin{opacity:1}
   /* Fondo del jardín: un atardecer. Cielo de noche vino arriba que se calienta hacia el horizonte,
-     con un sol dorado que asoma detrás del campo (a la misma altura del horizonte del canvas: 17%) */
+     con un sol dorado que asoma detrás del campo (a la misma altura del horizonte del canvas: 10%) */
   #resplandor{
     position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0;
     background:
-      radial-gradient(circle at 50% 17%, rgba(255,238,178,.9) 0%, rgba(255,200,90,.6) 5%, rgba(255,150,70,.30) 15%, transparent 40%),
-      radial-gradient(ellipse 130% 38% at 50% 22%, rgba(255,120,100,.34) 0%, rgba(255,170,60,.16) 45%, transparent 78%),
+      radial-gradient(circle at 50% 10%, rgba(255,238,178,.9) 0%, rgba(255,200,90,.6) 5%, rgba(255,150,70,.30) 15%, transparent 40%),
+      radial-gradient(ellipse 130% 38% at 50% 15%, rgba(255,120,100,.34) 0%, rgba(255,170,60,.16) 45%, transparent 78%),
       linear-gradient(180deg, #12060f 0%, #2a0b24 20%, #4a1236 38%, #5a2530 58%, #2a1010 100%);
     transition:opacity 3s ease .3s;
   }
@@ -144,7 +145,7 @@
   /* Rayos de luz que salen del sol y giran muy despacio */
   #rayos{
     position:fixed;z-index:0;pointer-events:none;opacity:0;
-    left:50%;top:17%;width:230vmax;height:230vmax;margin:-115vmax 0 0 -115vmax;
+    left:50%;top:10%;width:230vmax;height:230vmax;margin:-115vmax 0 0 -115vmax;
     background:repeating-conic-gradient(rgba(255,214,120,.10) 0deg 2.5deg, transparent 2.5deg 11deg);
     -webkit-mask-image:radial-gradient(circle closest-side, #000 0%, rgba(0,0,0,.55) 18%, transparent 45%);
             mask-image:radial-gradient(circle closest-side, #000 0%, rgba(0,0,0,.55) 18%, transparent 45%);
@@ -153,10 +154,10 @@
   }
   body.jardin #rayos{opacity:1}
   @keyframes girar{to{transform:rotate(360deg)}}
-  /* Sombra suave abajo, para que el texto se lea por encima de las flores */
+  /* Sombra suave en la base del jardín (da profundidad; el texto ya trae su propia mancha oscura) */
   #velo{
     position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0;
-    background:radial-gradient(ellipse 95% 40% at 50% 92%, rgba(18,6,15,.88) 0%, rgba(18,6,15,.6) 55%, transparent 100%);
+    background:radial-gradient(ellipse 100% 26% at 50% 100%, rgba(18,6,15,.6) 0%, transparent 100%);
     transition:opacity 2.4s ease .5s;
   }
   body.jardin #velo{opacity:1}
@@ -165,6 +166,8 @@
   body.jardin .verso{font-weight:600;text-shadow:0 0 18px rgba(18,6,15,.95), 0 0 30px rgba(255,170,30,.4), 0 2px 8px rgba(0,0,0,.9)}
   body.jardin .sub, body.jardin .para{text-shadow:0 0 12px rgba(18,6,15,.95), 0 2px 8px rgba(0,0,0,.9)}
   body.jardin #mensaje.titulo .verso{font-weight:400;text-shadow:0 0 22px rgba(18,6,15,.95), 0 0 34px rgba(255,190,40,.55), 0 2px 8px rgba(0,0,0,.9)}
+  /* En el jardín no hay corazón: el texto va más arriba, en la parte media-baja de la pantalla */
+  body.jardin #mensaje{top:auto;bottom:calc(22vh + env(safe-area-inset-bottom,0px));justify-content:flex-end}
   /* Mancha oscura y suave justo detrás del texto: así se lee aunque atrás haya flores brillantes */
   #mensaje::before{
     content:'';position:absolute;z-index:-1;pointer-events:none;
@@ -184,14 +187,14 @@
     .sub{font-size:1.35rem}
     .para{font-size:1.2rem}
     #mensaje.titulo .verso{font-size:clamp(3.6rem,14vw,6.6rem)}
-    #mensaje{bottom:calc(20vh + env(safe-area-inset-bottom,0px))}
     #mensaje.subida{bottom:calc(9.6rem + env(safe-area-inset-bottom,0px))}
+    body.jardin #mensaje{bottom:calc(34vh + env(safe-area-inset-bottom,0px))}   /* jardín en celular: texto a media pantalla */
     #siguiente{bottom:calc(3.4rem + env(safe-area-inset-bottom,0px))}
   }
   /* Celulares en vertical más bajitos (≈ 700px de alto o menos): un poco menos de subida para no tapar la punta del corazón */
   @media (max-width:700px) and (min-height:561px) and (max-height:700px){
-    #mensaje{bottom:calc(16vh + env(safe-area-inset-bottom,0px))}
     #mensaje.subida{bottom:calc(8.4rem + env(safe-area-inset-bottom,0px))}
+    body.jardin #mensaje{bottom:calc(30vh + env(safe-area-inset-bottom,0px))}
     #siguiente{bottom:calc(2.2rem + env(safe-area-inset-bottom,0px))}
     #mensaje.titulo .verso{font-size:3.2rem}
     .sub{font-size:1.2rem}
@@ -205,13 +208,13 @@
   }
   /* Pantallas bajitas (por ejemplo, celular acostado): todo más compacto para que el texto no tape el corazón ni las flores */
   @media (max-height:560px){
-    #mensaje{bottom:calc(3vh + env(safe-area-inset-bottom,0px));min-height:0}
+    #mensaje{min-height:0}
     #mensaje.subida{bottom:calc(3.9rem + env(safe-area-inset-bottom,0px))}
+    body.jardin #mensaje{bottom:calc(14vh + env(safe-area-inset-bottom,0px))}
     .verso{font-size:clamp(1.35rem,6vh,2rem);max-width:40ch}
     .sub{font-size:1.05rem;margin-top:.4rem;max-width:56ch}
     #mensaje.titulo .verso{font-size:clamp(2.2rem,12vh,3.6rem)}
     #siguiente{bottom:calc(.7rem + env(safe-area-inset-bottom,0px));padding:.55rem 1.2rem;font-size:.92rem}
-    #velo{background:radial-gradient(ellipse 95% 55% at 50% 100%, rgba(18,6,15,.88) 0%, rgba(18,6,15,.6) 55%, transparent 100%)}
   }
 
   @media (prefers-reduced-motion:reduce){
@@ -960,8 +963,8 @@ function nuevaFlor(x, y, rMin, rMax, instantanea){
     fase: Math.random() * TAU,
     vel: 0.6 + Math.random() * 0.7,
     amp: 1.5 + r * 0.1,                                   // cuánto se mece con el viento
-    // Las de abajo brotan primero y el campo va subiendo. Con -20 ya nace abierta.
-    demora: instantanea ? -20 : (1 - prof) * 8 + Math.random() * 7,
+    // Brotan por toda la pantalla casi a la vez (en ~7 s está lleno). Con -20 ya nace abierta.
+    demora: instantanea ? -20 : Math.random() * 4.5 + (1 - prof) * 2.5,
     durTallo: 1.1 + (1 - prof) * 1.5,
     hojas: banda > 0 && Math.random() < 0.8,
     cTallo: col('#3f8f5a', k, 0.85), cHoja: col('#2f7a4a', k, 0.75), cHojaLuz: col('#7fd29a', k, 0.6)
@@ -971,7 +974,7 @@ function nuevaFlor(x, y, rMin, rMax, instantanea){
    El cielo (con sol, rayos y estrellas) queda visible arriba y entre las flores. */
 function construirJardin(instantanea){
   flores = [];
-  horizonte = H * 0.17;
+  horizonte = H * 0.10;
   const lado = Math.min(W, H);
   const rMin = Math.max(9, lado * 0.03);
   const rMax = Math.min(96, lado * 0.15);
@@ -1188,6 +1191,8 @@ function ajustar(){
   jctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   if (jardinIniciado){ construirJardin(true); construirAmbiente(); }   // si giran el celular, el jardín se rehace ya abierto
   construirParticulas();
+  // El texto de la primera pantalla empieza justo debajo de la punta del corazón (con su latido y un pequeño margen)
+  document.documentElement.style.setProperty('--txt-top', Math.round(cyBase + escalaH * 18.5 * 1.08 + Math.max(14, escalaH * 1.2)) + 'px');
   construirPetalos();
   actualizarContorno(1);
 }
