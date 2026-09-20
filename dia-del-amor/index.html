@@ -177,24 +177,31 @@
   /* ---------- Responsive: celulares ---------- */
   /* width:max-content evita que el botón se parta en dos líneas: con left:50% el navegador solo le daría la mitad de la pantalla */
   #siguiente{width:max-content;max-width:calc(100vw - 2rem);justify-content:center;text-align:center}
-  /* Celulares en vertical: el texto sube a ~14% de la altura para no quedar pegado al borde ni bajo las barras del navegador */
+  /* Celulares en vertical: letras más grandes y el texto sube a ~20% de la altura
+     (antes quedaba pegado abajo, tapado por las barras del navegador) */
   @media (max-width:700px) and (min-height:561px){
-    #mensaje{bottom:calc(14vh + env(safe-area-inset-bottom,0px))}
-    #mensaje.subida{bottom:calc(8.6rem + env(safe-area-inset-bottom,0px))}
-    #siguiente{bottom:calc(2.4rem + env(safe-area-inset-bottom,0px))}
+    .verso{font-size:clamp(2.1rem,7.4vw,3rem)}
+    .sub{font-size:1.35rem}
+    .para{font-size:1.2rem}
+    #mensaje.titulo .verso{font-size:clamp(3.6rem,14vw,6.6rem)}
+    #mensaje{bottom:calc(20vh + env(safe-area-inset-bottom,0px))}
+    #mensaje.subida{bottom:calc(9.6rem + env(safe-area-inset-bottom,0px))}
+    #siguiente{bottom:calc(3.4rem + env(safe-area-inset-bottom,0px))}
   }
   /* Celulares en vertical más bajitos (≈ 700px de alto o menos): un poco menos de subida para no tapar la punta del corazón */
   @media (max-width:700px) and (min-height:561px) and (max-height:700px){
-    #mensaje{bottom:calc(11vh + env(safe-area-inset-bottom,0px))}
-    #mensaje.subida{bottom:calc(7.2rem + env(safe-area-inset-bottom,0px))}
-    #siguiente{bottom:calc(1.6rem + env(safe-area-inset-bottom,0px))}
+    #mensaje{bottom:calc(16vh + env(safe-area-inset-bottom,0px))}
+    #mensaje.subida{bottom:calc(8.4rem + env(safe-area-inset-bottom,0px))}
+    #siguiente{bottom:calc(2.2rem + env(safe-area-inset-bottom,0px))}
+    #mensaje.titulo .verso{font-size:3.2rem}
+    .sub{font-size:1.2rem}
   }
   /* Celulares angostos (≈ 360px o menos) */
   @media (max-width:380px){
     #siguiente{padding:.75rem 1.2rem;font-size:.95rem;gap:.5rem}
     #mensaje{padding:0 1rem}
-    #mensaje.titulo .verso{font-size:2.9rem}
-    .sub{font-size:1.1rem}
+    #mensaje.titulo .verso{font-size:3.1rem}
+    .sub{font-size:1.25rem}
   }
   /* Pantallas bajitas (por ejemplo, celular acostado): todo más compacto para que el texto no tape el corazón ni las flores */
   @media (max-height:560px){
@@ -355,6 +362,9 @@ audio.volume = 0;
 const audioJardin = new Audio(ARCHIVO_MUSICA_JARDIN);   // la música de las flores amarillas (entra al tocar el botón)
 audioJardin.loop = true;
 audioJardin.volume = 0;
+audioJardin.preload = 'auto';   // se va descargando desde el inicio, así suena al instante cuando toquen el botón
+let jardinSonando = false;      // true cuando love2.mp3 ya está sonando
+let jardinBloqueado = false;    // true si el navegador no la dejó sonar todavía (se reintenta en el siguiente toque)
 const btnSonido = document.getElementById('sonido');
 const aviso = document.getElementById('aviso');
 let silenciado = false;
@@ -391,12 +401,32 @@ function intentarAudio(){
       if (!musicaLibre) fundir(audioLatido, VOLUMEN_LATIDO, 1.2);   // el latido sube hasta VOLUMEN_LATIDO
     }).catch(() => {});
   }
+  if (jardinIniciado && !jardinSonando && jardinBloqueado) sonarJardin();   // reintento por si el navegador bloqueó love2.mp3 la primera vez
   if (iniciado && !jardinIniciado && audio.paused){   // en el jardín ya no debe volver love.mp3
     audio.play().catch(err => {
       if (err && err.name !== 'NotAllowedError')
         mostrarAviso('No se pudo reproducir "' + ARCHIVO_MUSICA + '". Ponlo en la misma carpeta que este archivo.');
     });
   }
+}
+/* Música de la pantalla de flores: love2.mp3 entra suave y love.mp3 se va apagando.
+   Se llama desde el toque del botón (así el navegador lo permite). Si el navegador la bloquea,
+   intentarAudio() la vuelve a pedir en el siguiente toque; si el archivo no existe, avisa. */
+function sonarJardin(){
+  if (jardinSonando) return;
+  jardinBloqueado = false;
+  audioJardin.muted = silenciado;
+  audioJardin.volume = 0;
+  const p = audioJardin.play();
+  if (!p) return;
+  p.then(() => {
+    jardinSonando = true;
+    fundir(audioJardin, 1, 2.4);
+    fundir(audio, 0, 2.4, () => audio.pause());
+  }).catch(err => {
+    if (err && err.name === 'NotAllowedError') jardinBloqueado = true;   // se reintenta en el próximo toque
+    else mostrarAviso('No se pudo reproducir "' + ARCHIVO_MUSICA_JARDIN + '". Ponlo en la misma carpeta que este archivo, con ese nombre exacto.');
+  });
 }
 /* Entra la música y el latido se va apagando */
 function entrarMusica(){
@@ -497,7 +527,7 @@ let particulas = [];
 function construirParticulas(){
   const n = W < 600 ? 700 : 1200;
   escalaH = Math.min(W * 0.8, H * 0.55) / 34;
-  const cx = W / 2, cy = H * 0.38;
+  const cx = W / 2, cy = H * (W < H ? 0.33 : 0.38);   // en vertical (celular) el corazón sube un poco para dejarle lugar al texto
   cxH = cx; cyBase = cy;
   particulas = [];
   for (let i = 0; i < n; i++){
@@ -1131,6 +1161,7 @@ function mostrarBoton(){ btnSiguiente.classList.add('visible'); }
 function irAlJardin(){
   if (jardinIniciado) return;
   jardinIniciado = true;
+  sonarJardin();                                    // 🎵 lo primero: suena love2.mp3 (dentro del toque, para que el navegador lo permita)
   btnSiguiente.classList.remove('visible');
   ocultarMensaje();                                 // el mensaje final se desvanece
   document.body.classList.add('jardin');            // el corazón se apaga y aparece el jardín (ver CSS)
@@ -1141,18 +1172,6 @@ function irAlJardin(){
   construirAmbiente();
   requestAnimationFrame(cuadroJardin);
   programarMensajes(MENSAJES_JARDIN);               // los mensajes del jardín
-
-  // Música del jardín: love2.mp3 entra suavecito y love.mp3 se va apagando.
-  // Se pide aquí mismo, dentro del toque del botón, para que el celular deje sonar el audio.
-  // Si love2.mp3 no está en la carpeta, avisa y deja seguir sonando love.mp3.
-  audioJardin.muted = silenciado;
-  audioJardin.volume = 0;
-  audioJardin.play().then(() => {
-    fundir(audioJardin, 1, 2.4);
-    fundir(audio, 0, 2.4, () => audio.pause());
-  }).catch(() => {
-    mostrarAviso('No se pudo reproducir "' + ARCHIVO_MUSICA_JARDIN + '". Ponlo en la misma carpeta que este archivo.');
-  });
 }
 btnSiguiente.addEventListener('pointerdown', e => e.stopPropagation());   // que el toque no haga estallar corazones
 btnSiguiente.addEventListener('click', e => { e.stopPropagation(); irAlJardin(); });
@@ -1380,6 +1399,7 @@ function comenzar(){
   audio.muted = true;              // la música arranca en silencio (eso siempre se permite) y entra a su hora
   intentarAudio();                 // si el latido no estaba sonando todavía, arranca con este toque
   setTimeout(entrarMusica, MUSICA_ENTRA_EN * 1000);
+  setTimeout(crearSprites, 2000);  // deja listas las flores mientras se ve el corazón: así el botón responde al instante
 }
 addEventListener('pointerdown', e => {
   if (!iniciado) { comenzar(); return; }
@@ -1390,6 +1410,9 @@ addEventListener('pointerdown', e => {
 ['pointerdown', 'pointerup', 'touchend', 'click', 'keydown'].forEach(ev =>
   addEventListener(ev, intentarAudio, { passive: true }));
 intentarAudio();                   // primer intento al cargar la página (a veces el navegador lo permite)
+audioJardin.addEventListener('error', () => {
+  if (jardinIniciado) mostrarAviso('No se encontró "' + ARCHIVO_MUSICA_JARDIN + '". Ponlo en la misma carpeta que este archivo, con ese nombre exacto.');
+});
 audio.addEventListener('error', () => {
   if (iniciado) mostrarAviso('No se encontró "' + ARCHIVO_MUSICA + '". Ponlo en la misma carpeta que este archivo.');
 });
