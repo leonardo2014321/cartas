@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Feliz Día del Amor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,400;1,500&family=Jost:wght@300;400&family=Pinyon+Script&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --noche:#12060f;
+    --vino:#3a0d2a;
+    --sangre:#b3123f;
+    --rosa:#ff5d8f;
+    --coral:#ff9a8b;
+    --hueso:#f2e6df;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  /* Celular: sin zoom por doble toque, sin seleccionar texto al mantener presionado y sin "rebote" al arrastrar */
+  html,body{touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;overscroll-behavior:none}
+  html,body{height:100%;overflow:hidden;background:var(--noche);color:var(--hueso);
+    font-family:'Jost',system-ui,sans-serif;-webkit-tap-highlight-color:transparent;cursor:pointer}
+  body{
+    background:
+      radial-gradient(ellipse 75% 55% at 50% 40%, var(--vino) 0%, transparent 70%),
+      linear-gradient(180deg, #1e0a1c 0%, var(--noche) 100%);
+  }
+  canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
+
+  /* ---------- Pantalla de entrada ---------- */
+  #intro{
+    position:fixed;inset:0;z-index:5;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:1.6rem;
+    background:radial-gradient(ellipse at center, #2a0b24 0%, var(--noche) 75%);
+    transition:opacity 1.4s ease, visibility 1.4s;
+  }
+  #intro svg{width:64px;height:60px;animation:latido 1.6s ease-in-out infinite}
+  #intro p{font-weight:300;font-size:1.05rem;letter-spacing:.06em;color:var(--coral)}
+  @keyframes latido{
+    0%,100%{transform:scale(1)} 15%{transform:scale(1.18)} 30%{transform:scale(1)} 45%{transform:scale(1.12)}
+  }
+  body.on #intro{opacity:0;visibility:hidden;pointer-events:none}
+
+  /* ---------- Mensajes ---------- */
+  #mensaje{
+    position:fixed;left:0;right:0;bottom:calc(7vh + env(safe-area-inset-bottom,0px));
+    z-index:2;padding:0 1.5rem;pointer-events:none;min-height:9rem;
+    display:flex;flex-direction:column;align-items:center;justify-content:flex-end;text-align:center;
+  }
+  #mensaje > *{
+    opacity:0;filter:blur(10px);transform:translateY(8px);
+    transition:opacity .7s ease, filter .7s ease, transform .7s ease;
+  }
+  #mensaje.visible > *{
+    opacity:1;filter:blur(0);transform:none;
+    transition:opacity 1.6s ease, filter 1.6s ease, transform 1.6s ease;
+  }
+  .verso{
+    font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-weight:400;
+    font-size:clamp(1.5rem,4.8vw,2.3rem);line-height:1.3;max-width:24ch;color:var(--hueso);
+    text-shadow:0 0 24px rgba(179,18,63,.6), 0 2px 10px rgba(0,0,0,.7);
+  }
+  .sub{
+    margin-top:.9rem;font-weight:300;font-size:1.05rem;line-height:1.5;max-width:32ch;color:var(--coral);
+    text-shadow:0 2px 10px rgba(0,0,0,.7);
+    white-space:pre-line;   /* respeta los saltos de línea (\n) que pongas en "sub" */
+  }
+  .para{margin-bottom:.4rem;font-weight:300;font-size:1rem;color:var(--coral)}
+  /* Estilo del mensaje final (cuando "titulo: true") */
+  #mensaje.titulo .verso{
+    font-family:'Pinyon Script','Snell Roundhand',cursive;font-style:normal;font-weight:400;
+    font-size:clamp(3rem,10vw,6.2rem);line-height:1.05;max-width:none;
+    text-shadow:0 0 30px rgba(225,29,90,.6), 0 2px 10px rgba(0,0,0,.7);
+  }
+
+  /* ---------- Botón de sonido ---------- */
+  #sonido{
+    position:fixed;z-index:6;right:calc(1rem + env(safe-area-inset-right,0px));
+    top:calc(1rem + env(safe-area-inset-top,0px));
+    width:44px;height:44px;border-radius:50%;border:1px solid rgba(242,230,223,.35);
+    background:rgba(18,6,15,.55);color:var(--hueso);cursor:pointer;
+    display:none;align-items:center;justify-content:center;
+  }
+  body.on #sonido{display:flex}
+  #sonido:hover{border-color:var(--coral)}
+  #sonido:focus-visible{outline:2px solid var(--coral);outline-offset:3px}
+  #sonido svg{width:20px;height:20px}
+  #sonido .off{display:none}
+  #sonido.silencio .on{display:none}
+  #sonido.silencio .off{display:block}
+
+  #aviso{
+    position:fixed;left:50%;top:1.2rem;transform:translateX(-50%);z-index:7;
+    max-width:min(90vw,420px);width:max-content;padding:.7rem 1rem;border-radius:10px;
+    background:rgba(242,230,223,.95);color:#3a0d2a;font-size:.9rem;text-align:center;display:none;
+  }
+
+  /* ---------- Botón "continuar" (aparece bajo el mensaje final) ---------- */
+  /* Cuando el mensaje final trae botón, se sube un poco para dejarle su lugar debajo */
+  #mensaje.subida{bottom:calc(5.6rem + env(safe-area-inset-bottom,0px))}
+  #siguiente{
+    position:fixed;z-index:4;left:50%;
+    bottom:calc(1.3rem + env(safe-area-inset-bottom,0px));
+    display:flex;align-items:center;gap:.65rem;
+    padding:.85rem 1.5rem;border-radius:999px;
+    border:1px solid rgba(255,154,139,.55);
+    background:rgba(18,6,15,.55);color:var(--coral);
+    font:300 1rem 'Jost',system-ui,sans-serif;letter-spacing:.06em;cursor:pointer;
+    /* oculto: mismo efecto de "salir del desenfoque" que los mensajes */
+    opacity:0;filter:blur(10px);visibility:hidden;transform:translateX(-50%) translateY(8px);
+    transition:opacity 1.6s ease, filter 1.6s ease, transform 1.6s ease, visibility 0s 1.6s, border-color .3s, color .3s;
+  }
+  #siguiente.visible{
+    opacity:1;filter:blur(0);visibility:visible;transform:translateX(-50%);
+    transition:opacity 1.6s ease, filter 1.6s ease, transform 1.6s ease, visibility 0s, border-color .3s, color .3s;
+    animation:respira 2.6s ease-in-out 1.8s infinite;
+  }
+  #siguiente:hover{border-color:#ffd23f;color:#ffe9a6}
+  #siguiente:focus-visible{outline:2px solid #ffd23f;outline-offset:3px}
+  #siguiente svg{width:18px;height:18px;flex:none}
+  @keyframes respira{
+    0%,100%{box-shadow:0 0 0 0 rgba(255,154,139,0)}
+    50%{box-shadow:0 0 22px 2px rgba(255,154,139,.28)}
+  }
+
+  /* ---------- Segunda pantalla: jardín de flores amarillas ---------- */
+  /* El corazón se desvanece y el jardín aparece encima */
+  #lienzo{transition:opacity 1.6s ease}
+  body.jardin #lienzo{opacity:0}
+  #jardin{z-index:1;opacity:0;transition:opacity 2.4s ease .5s}
+  body.jardin #jardin{opacity:1}
+  /* Resplandor dorado detrás de las flores (cambia el ambiente del vino al sol) */
+  #resplandor{
+    position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0;
+    background:radial-gradient(ellipse 85% 65% at 50% 30%, rgba(255,190,60,.30) 0%, rgba(150,60,30,.20) 45%, transparent 78%);
+    transition:opacity 3s ease .3s;
+  }
+  body.jardin #resplandor{opacity:1}
+  /* Sombra suave abajo, para que el texto se lea por encima de las flores */
+  #velo{
+    position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0;
+    background:radial-gradient(ellipse 95% 36% at 50% 94%, rgba(18,6,15,.92) 0%, rgba(18,6,15,.68) 55%, transparent 100%);
+    transition:opacity 2.4s ease .5s;
+  }
+  body.jardin #velo{opacity:1}
+  /* Los textos de esta pantalla brillan en dorado en vez de en vino */
+  body.jardin .sub, body.jardin .para{color:#ffd98a}
+  body.jardin .verso{text-shadow:0 0 24px rgba(255,170,30,.55), 0 2px 10px rgba(0,0,0,.8)}
+  body.jardin #mensaje.titulo .verso{text-shadow:0 0 30px rgba(255,190,40,.65), 0 2px 10px rgba(0,0,0,.8)}
+
+  /* ---------- Responsive: celulares ---------- */
+  /* width:max-content evita que el botón se parta en dos líneas: con left:50% el navegador solo le daría la mitad de la pantalla */
+  #siguiente{width:max-content;max-width:calc(100vw - 2rem);justify-content:center;text-align:center}
+  /* Celulares angostos (≈ 360px o menos) */
+  @media (max-width:380px){
+    #siguiente{padding:.75rem 1.2rem;font-size:.95rem;gap:.5rem}
+    #mensaje{padding:0 1rem}
+    #mensaje.titulo .verso{font-size:2.7rem}
+    .sub{font-size:1rem}
+  }
+  /* Pantallas bajitas (por ejemplo, celular acostado): todo más compacto para que el texto no tape el corazón ni las flores */
+  @media (max-height:560px){
+    #mensaje{bottom:calc(3vh + env(safe-area-inset-bottom,0px));min-height:0}
+    #mensaje.subida{bottom:calc(3.9rem + env(safe-area-inset-bottom,0px))}
+    .verso{font-size:clamp(1.2rem,5vh,1.8rem);max-width:40ch}
+    .sub{font-size:.95rem;margin-top:.4rem;max-width:56ch}
+    #mensaje.titulo .verso{font-size:clamp(2.2rem,12vh,3.6rem)}
+    #siguiente{bottom:calc(.7rem + env(safe-area-inset-bottom,0px));padding:.55rem 1.2rem;font-size:.92rem}
+    #velo{background:radial-gradient(ellipse 95% 50% at 50% 100%, rgba(18,6,15,.92) 0%, rgba(18,6,15,.68) 55%, transparent 100%)}
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    #siguiente.visible{animation:none}
+    #intro svg{animation:none}
+    #mensaje > *, #mensaje.visible > *{transition-duration:.01s}
+  }
+</style>
+</head>
+<body>
+
+<!-- Resplandor dorado de fondo (solo se ve en la segunda pantalla) -->
+<div id="resplandor" aria-hidden="true"></div>
+
+<canvas id="lienzo" aria-hidden="true"></canvas>
+<!-- Segunda pantalla: jardín de flores amarillas -->
+<canvas id="jardin" aria-hidden="true"></canvas>
+<!-- Sombra suave detrás del texto para que se lea sobre las flores -->
+<div id="velo" aria-hidden="true"></div>
+
+<div id="intro" role="button" aria-label="Toca la pantalla para comenzar">
+  <svg viewBox="0 0 32 30" aria-hidden="true">
+    <path d="M16 28C2 17 0 8 6 3C10 0 14 2 16 6C18 2 22 0 26 3C32 8 30 17 16 28Z" fill="#e11d5a"/>
+  </svg>
+  <p>Toca la pantalla</p>
+</div>
+
+<button id="sonido" aria-label="Silenciar música" title="Música">
+  <svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a10 10 0 0 1 0 14"/></svg>
+  <svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="m22 9-6 6"/><path d="m16 9 6 6"/></svg>
+</button>
+
+<div id="aviso" role="status"></div>
+
+<!-- Botón que aparece justo debajo del mensaje final y lleva al jardín de flores amarillas.
+     Cambia el texto de aquí si quieres otra frase. -->
+<button id="siguiente" type="button">
+  <span>Una cosa más, mi amor</span>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+</button>
+
+<!-- Contenedor de los mensajes: el texto se rellena desde el script (ver MENSAJES) -->
+<div id="mensaje">
+  <div class="para" id="para"></div>
+  <div class="verso" id="verso"></div>
+  <div class="sub" id="sub"></div>
+</div>
+
+<script>
+/* =====================================================================
+   ✏️  MENSAJES  ←←← AQUÍ CAMBIAS LOS TEXTOS
+   ---------------------------------------------------------------------
+   Cada mensaje es una línea que aparece, se queda un rato y se desvanece.
+
+     en     → segundo en que aparece (contado desde el primer clic)
+     dura   → cuántos segundos se queda en pantalla.
+              Pon 0 para que NO desaparezca (úsalo solo en el último).
+     texto  → el mensaje principal
+     sub    → (opcional) línea pequeña debajo del texto
+     titulo → (opcional) true = se muestra grande, en letra cursiva de título
+     boton  → (opcional) true = después de este mensaje aparece el botón que
+              lleva a la segunda pantalla (el jardín de flores amarillas)
+
+   Consejos:
+   - Deja al menos 1 segundo entre el final de un mensaje (en + dura)
+     y el inicio del siguiente (en), para que el cambio se vea suave.
+   - Puedes agregar o borrar mensajes libremente.
+   - La flecha llega al corazón alrededor del segundo 4.4
+     (ver FLECHA_INICIO más abajo). El mensaje "Se clavan." está
+     puesto justo en ese momento; si cambias el tiempo de la flecha,
+     ajusta también ese mensaje.
+   ===================================================================== */
+const MENSAJES = [
+  { en: 1.0,  dura: 2.6, texto: "Hay cosas que no se eligen." },
+  { en: 4.5,  dura: 2.3, texto: "Se clavan." },
+  { en: 8.0,  dura: 3.4, texto: "Y uno aprende a vivir con el filo adentro." },
+  { en: 12.4, dura: 3.4, texto: "Duele bonito, y aun así no la sacaría." },
+  // Mensaje final (se queda en pantalla):
+  { en: 16.6, dura: 0,   texto: "Feliz Día del Amor",
+    sub: "por lo que sangra y, aun así, sigue latiendo.", titulo: true,
+    boton: true }   // ← después de este mensaje sale el botón hacia el jardín
+];
+
+/* ✏️  SEGUNDA PANTALLA: JARDÍN DE FLORES AMARILLAS
+   Se activa al tocar el botón "Una cosa más, mi amor". Los tiempos (en / dura) cuentan
+   desde el momento en que se toca el botón, y el formato es el mismo de MENSAJES.
+   Las flores van brotando durante ~15 segundos, así que los mensajes acompañan ese ritmo.
+   Puedes usar "\n" dentro de "sub" para partirlo en dos renglones.                          */
+const BOTON_RETRASO = 3.5;   // segundos que espera el botón (después de salir el mensaje final) para aparecer
+const MENSAJES_JARDIN = [
+  { en: 2.0,  dura: 3.2, texto: "Y de esa herida, mi amor, brotaron flores." },
+  { en: 6.2,  dura: 3.2, texto: "Amarillas, como la luz que traes cuando llegas." },
+  { en: 10.4, dura: 3.6, texto: "Contigo aprendí que también se florece donde dolió." },
+  { en: 15.0, dura: 3.6, texto: "Ame, eres el día claro en mis noches más largas." },
+  { en: 19.6, dura: 3.6, texto: "Si pudiera, mi amor, te regalaría un campo entero." },
+  // Mensaje final del jardín (se queda en pantalla):
+  { en: 24.4, dura: 0,   texto: "América",
+    sub: "Ame, mi amor, eres mi flor favorita.\nGracias por florecer conmigo.", titulo: true }
+];
+
+/* ✏️  DEDICATORIA (opcional)
+   Aparece sobre el mensaje final como "Para ...".
+   Déjalo vacío ("") para no mostrar nada, o cámbialo por un nombre.
+   También funciona por URL: dia-del-amor.html?para=María           */
+const NOMBRE = new URLSearchParams(location.search).get('para') || "";
+
+/* ✏️  AUDIO (los archivos deben estar en la misma carpeta que este HTML)
+   latido.mp3 suena en bucle desde el principio y se apaga cuando entra la música.
+   OJO: ningún navegador deja sonar nada antes de que la persona toque la pantalla.
+   Por eso el latido se intenta al cargar la página y, si lo bloquean (lo normal),
+   arranca con el primer toque, clic o tecla.                                        */
+const ARCHIVO_LATIDO  = "latido.mp3";
+const ARCHIVO_MUSICA  = "love.mp3";
+const MUSICA_ENTRA_EN = 4.5;   // segundo (desde el primer toque) en que entra la música
+const LATIDO_FINAL    = 0;     // volumen (0 a 1) al que baja el latido cuando entra la música (0 = se apaga)
+const VOLUMEN_LATIDO  = 0.25;  // volumen (0 a 1) del latido mientras suena. Antes sonaba a 1; sube o baja este número a tu gusto
+const ARCHIVO_MUSICA_JARDIN = "love2.mp3";   // suena al tocar el botón de la pantalla de flores (misma carpeta que este HTML)
+
+/* ⚙️  TIEMPOS DE LA FLECHA (en segundos desde el primer clic) */
+const FLECHA_INICIO = 4.0;   // cuándo sale disparada
+const FLECHA_DUR    = 1.1;   // cuánto tarda en llegar
+const FLECHA_ANGULO = 0.42;  // inclinación (radianes). Viene desde arriba a la izquierda
+const FLECHA_ANGULO_VERTICAL = 0.6;  // ángulo en pantallas verticales (celular): más inclinada para que se vean las plumas.
+                                     // Pon el mismo valor que FLECHA_ANGULO si prefieres que sea igual en todas.
+/* ===================================================================== */
+
+const reducirMovimiento = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const lienzo = document.getElementById('lienzo');
+const ctx = lienzo.getContext('2d');
+/* Paleta del canvas: rosas, sangre y hueso */
+const COLORES = ['#e11d5a', '#ff5d8f', '#b3123f', '#ff9a8b', '#f2e6df'];
+const SANGRE = ['#b3123f', '#8f0f3a', '#e11d5a'];
+let W = 0, H = 0, DPR = 1;
+let iniciado = false;
+let t0 = 0, ultimo = 0;
+let anguloFlecha = FLECHA_ANGULO;
+let fasePulso = 0;
+
+/* ---------- Audio: latido + música ---------- */
+const audioLatido = new Audio(ARCHIVO_LATIDO);
+audioLatido.loop = true;
+audioLatido.volume = 0;
+const audio = new Audio(ARCHIVO_MUSICA);          // la música
+audio.loop = true;
+audio.volume = 0;
+const audioJardin = new Audio(ARCHIVO_MUSICA_JARDIN);   // la música de las flores amarillas (entra al tocar el botón)
+audioJardin.loop = true;
+audioJardin.volume = 0;
+const btnSonido = document.getElementById('sonido');
+const aviso = document.getElementById('aviso');
+let silenciado = false;
+let latidoSonando = false;
+let musicaLibre = false;      // false = la música corre en silencio hasta que le toca entrar
+
+function mostrarAviso(txt){
+  aviso.textContent = txt;
+  aviso.style.display = 'block';
+  setTimeout(() => aviso.style.display = 'none', 6000);
+}
+/* Sube o baja el volumen de un audio poco a poco */
+function fundir(el, hasta, seg, alTerminar){
+  clearInterval(el._fundido);
+  const desde = el.volume, pasos = Math.max(1, Math.round(seg * 1000 / 60));
+  let i = 0;
+  el._fundido = setInterval(() => {
+    i++;
+    el.volume = Math.min(1, Math.max(0, desde + (hasta - desde) * Math.min(1, i / pasos)));
+    if (i >= pasos){ clearInterval(el._fundido); if (alTerminar) alTerminar(); }
+  }, 60);
+}
+function aplicarSilencio(){
+  audioLatido.muted = silenciado;
+  audioJardin.muted = silenciado;
+  audio.muted = silenciado || !musicaLibre;
+}
+/* Intenta arrancar el audio. Se llama al cargar la página y otra vez en cada gesto
+   (toque, clic, tecla) hasta que el navegador lo deja sonar. */
+function intentarAudio(){
+  if (!latidoSonando && !musicaLibre){
+    audioLatido.play().then(() => {
+      latidoSonando = true;
+      if (!musicaLibre) fundir(audioLatido, VOLUMEN_LATIDO, 1.2);   // el latido sube solo hasta VOLUMEN_LATIDO (suave)
+    }).catch(() => {});
+  }
+  if (iniciado && !jardinIniciado && audio.paused){   // en el jardín ya no debe volver love.mp3
+    audio.play().catch(err => {
+      if (err && err.name !== 'NotAllowedError')
+        mostrarAviso('No se pudo reproducir "' + ARCHIVO_MUSICA + '". Ponlo en la misma carpeta que este archivo.');
+    });
+  }
+}
+/* Entra la música y el latido se va apagando */
+function entrarMusica(){
+  musicaLibre = true;
+  audio.currentTime = 0;
+  audio.volume = 0;
+  aplicarSilencio();
+  audio.play().catch(() => {});
+  fundir(audio, 1, 2.4);
+  fundir(audioLatido, LATIDO_FINAL, 3, () => { if (LATIDO_FINAL === 0) audioLatido.pause(); });
+}
+btnSonido.addEventListener('pointerdown', e => e.stopPropagation());
+btnSonido.addEventListener('click', e => {
+  e.stopPropagation();
+  silenciado = !silenciado;
+  btnSonido.classList.toggle('silencio', silenciado);
+  btnSonido.setAttribute('aria-label', silenciado ? 'Activar música' : 'Silenciar música');
+  aplicarSilencio();
+});
+
+/* ---------- Mensajes: secuenciador ---------- */
+const cajaMsg = document.getElementById('mensaje');
+const elVerso = document.getElementById('verso');
+const elSub = document.getElementById('sub');
+const elPara = document.getElementById('para');
+
+function ocultarMensaje(){ cajaMsg.classList.remove('visible'); }
+function mostrarMensaje(m){
+  const poner = () => {
+    elVerso.textContent = m.texto;
+    elSub.textContent = m.sub || '';
+    elPara.textContent = (m.titulo && NOMBRE) ? 'Para ' + NOMBRE : '';
+    cajaMsg.classList.toggle('titulo', !!m.titulo);
+    cajaMsg.classList.toggle('subida', !!m.boton);    // deja lugar abajo para el botón
+    cajaMsg.classList.add('visible');
+    if (m.boton) setTimeout(mostrarBoton, BOTON_RETRASO * 1000);   // el botón sale un rato después del texto
+  };
+  if (cajaMsg.classList.contains('visible')) { ocultarMensaje(); setTimeout(poner, 700); }
+  else poner();
+}
+/* Recibe la lista de mensajes a programar (MENSAJES para el corazón, MENSAJES_JARDIN para el jardín) */
+function programarMensajes(lista){
+  lista.forEach(m => {
+    setTimeout(() => {
+      mostrarMensaje(m);
+      if (m.dura > 0) setTimeout(ocultarMensaje, m.dura * 1000);
+    }, m.en * 1000);
+  });
+}
+
+/* ---------- Geometría del corazón ---------- */
+const NPTS = 96;
+let pts = [];                          // contorno del corazón (se recalcula con cada latido)
+let escalaH = 1, cxH = 0, cyBase = 0;
+
+function puntoCorazon(t){
+  const s = Math.sin(t);
+  return {
+    x: 16 * s * s * s,
+    y: -(13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t))
+  };
+}
+function actualizarContorno(lat){
+  pts.length = 0;
+  for (let i = 0; i < NPTS; i++){
+    const p = puntoCorazon(i / NPTS * Math.PI * 2);
+    pts.push({ x: cxH + p.x * escalaH * lat, y: cyBase + (p.y * escalaH + escalaH * 1.5) * lat });
+  }
+}
+function trazarContorno(){
+  ctx.moveTo(pts[0].x, pts[0].y);
+  for (let i = 1; i < NPTS; i++) ctx.lineTo(pts[i].x, pts[i].y);
+  ctx.closePath();
+}
+function dentro(x, y){
+  let c = false;
+  for (let i = 0, j = NPTS - 1; i < NPTS; j = i++){
+    const a = pts[i], b = pts[j];
+    if ((a.y > y) !== (b.y > y) && x < (b.x - a.x) * (y - a.y) / (b.y - a.y) + a.x) c = !c;
+  }
+  return c;
+}
+/* Distancia desde (ax,ay), en la dirección (sx,sy), hasta salir del corazón */
+function distanciaHastaBorde(ax, ay, sx, sy){
+  const paso = escalaH * 0.5;
+  let d = 0;
+  while (d < escalaH * 40 && dentro(ax + sx * d, ay + sy * d)) d += paso;
+  let lo = d - paso, hi = d;
+  for (let i = 0; i < 12; i++){
+    const m = (lo + hi) / 2;
+    if (dentro(ax + sx * m, ay + sy * m)) lo = m; else hi = m;
+  }
+  return (lo + hi) / 2;
+}
+
+/* ---------- Corazón de partículas ---------- */
+let particulas = [];
+function construirParticulas(){
+  const n = W < 600 ? 700 : 1200;
+  escalaH = Math.min(W * 0.8, H * 0.55) / 34;
+  const cx = W / 2, cy = H * 0.38;
+  cxH = cx; cyBase = cy;
+  particulas = [];
+  for (let i = 0; i < n; i++){
+    const p = puntoCorazon(Math.random() * Math.PI * 2);
+    const borde = Math.random() < 0.6;
+    const r = borde ? 1 + (Math.random() - 0.5) * 0.06 : Math.sqrt(Math.random()) * 0.94;
+    const tx = cx + p.x * r * escalaH;
+    const ty = cy + p.y * r * escalaH + escalaH * 1.5;
+    const ang = Math.random() * Math.PI * 2;
+    const dist = Math.max(W, H) * (0.6 + Math.random() * 0.5);
+    particulas.push({
+      x: cx + Math.cos(ang) * dist, y: cy + Math.sin(ang) * dist,
+      vx: 0, vy: 0,
+      tx, ty, cx, cy,
+      tam: 0.9 + Math.random() * 1.8,
+      color: COLORES[(Math.random() * COLORES.length) | 0],
+      demora: Math.random() * 1.6,
+      fase: Math.random() * 6.28,
+      vel: 0.02 + Math.random() * 0.035
+    });
+  }
+}
+
+/* ---------- Pétalos ---------- */
+let petalos = [];
+function nuevoPetalo(arriba){
+  return {
+    x: Math.random() * W,
+    y: arriba ? -20 : Math.random() * H,
+    tam: 5 + Math.random() * 9,
+    vy: 0.3 + Math.random() * 0.6,
+    balanceo: Math.random() * 6.28,
+    amp: 0.3 + Math.random() * 0.8,
+    rot: Math.random() * 6.28,
+    vrot: (Math.random() - 0.5) * 0.03,
+    color: ['#b3123f', '#8f0f3a', '#e11d5a', '#f2e6df'][(Math.random() * 4) | 0]
+  };
+}
+function construirPetalos(){
+  const n = reducirMovimiento ? 10 : (W < 600 ? 18 : 30);
+  petalos = Array.from({length: n}, () => nuevoPetalo(false));
+}
+
+/* ---------- Corazones al tocar ---------- */
+let flotantes = [];
+function dibujarCorazon(x, y, s, giro){
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(giro || 0);
+  ctx.beginPath();
+  ctx.moveTo(0, s * 0.35);
+  ctx.bezierCurveTo(-s * 1.2, -s * 0.5, -s * 0.4, -s * 1.1, 0, -s * 0.4);
+  ctx.bezierCurveTo(s * 0.4, -s * 1.1, s * 1.2, -s * 0.5, 0, s * 0.35);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+function estallido(x, y){
+  const n = reducirMovimiento ? 4 : 9;
+  for (let i = 0; i < n; i++){
+    const ang = -Math.PI / 2 + (Math.random() - 0.5) * 2.2;
+    const v = 1.2 + Math.random() * 2.6;
+    flotantes.push({
+      x, y, vx: Math.cos(ang) * v, vy: Math.sin(ang) * v,
+      s: 7 + Math.random() * 12, vida: 1,
+      giro: (Math.random() - 0.5) * 0.6,
+      color: COLORES[(Math.random() * 3) | 0]
+    });
+  }
+}
+
+/* ---------- Cuerpo del corazón ----------
+   Estilo 2D con volumen: relleno plano en dos tonos (luz desde arriba-izquierda y una media luna
+   de sombra abajo-derecha), un brillo de trazo corto y un borde fino. Sin degradados difusos. */
+function dibujarCuerpo(alfa){
+  if (alfa <= 0.01) return;
+  const e = escalaH;
+  const lat = (pts[NPTS / 4].x - cxH) / (16 * e);      // escala actual del latido
+  ctx.save();
+  ctx.globalAlpha = alfa;
+  // tono de sombra: toda la silueta
+  ctx.fillStyle = '#4a0c2b';
+  ctx.beginPath(); trazarContorno(); ctx.fill();
+  // tono base: la misma silueta, un poco más chica y corrida hacia la luz → deja la media luna de sombra
+  ctx.save();
+  ctx.beginPath(); trazarContorno(); ctx.clip();
+  ctx.translate(cxH - e * 1.1 * lat, cyBase - e * 1.3 * lat);
+  ctx.scale(0.93, 0.93);
+  ctx.translate(-cxH, -cyBase);
+  ctx.fillStyle = '#8f1a4a';
+  ctx.beginPath(); trazarContorno(); ctx.fill();
+  ctx.restore();
+  // brillo: un trazo corto y un punto en el lóbulo izquierdo
+  ctx.save();
+  ctx.beginPath(); trazarContorno(); ctx.clip();
+  const lx = cxH - e * 8.4 * lat, ly = cyBase - e * 2.7 * lat, lr = e * 5.2 * lat;
+  ctx.strokeStyle = ctx.fillStyle = 'rgba(255,226,232,.6)';
+  ctx.lineWidth = Math.max(2, e * 0.7);
+  ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.arc(lx, ly, lr, Math.PI * 1.1, Math.PI * 1.4); ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(lx + Math.cos(Math.PI * 1.53) * lr, ly + Math.sin(Math.PI * 1.53) * lr, Math.max(1.6, e * 0.34), 0, 6.283);
+  ctx.fill();
+  ctx.restore();
+  // borde iluminado arriba-izquierda, oscuro abajo-derecha
+  const rg = ctx.createLinearGradient(cxH - e * 16, cyBase - e * 10, cxH + e * 16, cyBase + e * 14);
+  rg.addColorStop(0, 'rgba(255,154,139,.75)');
+  rg.addColorStop(1, 'rgba(179,18,63,.25)');
+  ctx.strokeStyle = rg;
+  ctx.lineWidth = Math.max(1.5, e * 0.18);
+  ctx.lineJoin = 'round';
+  ctx.beginPath(); trazarContorno(); ctx.stroke();
+  ctx.restore();
+}
+
+/* ---------- Flecha ---------- */
+let tImpacto = null;      // segundo en que la flecha toca el corazón
+let ix = 0, iy = 0;       // punto de impacto (entrada de la flecha)
+let gotas = [];
+let proxGota = 0;
+
+/* Flecha 2D con volumen: asta pareja con banda de sombra y filo de luz, cabeza en dos tonos con
+   pliegue central y plumas planas con nervadura. Sin degradados ni brillos difusos.
+   Se dibuja recortada (ver cuadro) para que la punta salga "por detrás" del corazón. */
+function dibujarFlecha(x, y, ang, L){
+  const e = escalaH;
+  const sh = Math.max(2.6, e * 0.36);
+  const hl = e * 4.4, hw = e * 1.8;
+  const f = e * 1.7, fw = e * 1.55;
+  const fin = L / 2 - hl * 0.7;                    // donde termina el asta (metida en la cabeza)
+  const linea = Math.max(1, e * 0.1);
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(ang);
+  // asta: color base, banda de sombra abajo y filo de luz arriba
+  ctx.fillStyle = '#eddcd3';
+  ctx.fillRect(-L / 2, -sh / 2, fin + L / 2, sh);
+  ctx.fillStyle = '#b79f95';
+  ctx.fillRect(-L / 2, sh * 0.12, fin + L / 2, sh * 0.38);
+  ctx.fillStyle = 'rgba(255,255,255,.9)';
+  ctx.fillRect(-L / 2, -sh * 0.38, fin + L / 2, Math.max(1, sh * 0.15));
+  // cabeza: mitad iluminada, mitad en sombra, con pliegue central
+  ctx.fillStyle = '#f7ebe4';
+  ctx.beginPath();
+  ctx.moveTo(L / 2, 0); ctx.lineTo(L / 2 - hl, -hw); ctx.lineTo(L / 2 - hl * 0.74, 0);
+  ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#c9b0a5';
+  ctx.beginPath();
+  ctx.moveTo(L / 2, 0); ctx.lineTo(L / 2 - hl * 0.74, 0); ctx.lineTo(L / 2 - hl, hw);
+  ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = 'rgba(120,90,85,.55)';
+  ctx.lineWidth = linea;
+  ctx.beginPath(); ctx.moveTo(L / 2, 0); ctx.lineTo(L / 2 - hl * 0.74, 0); ctx.stroke();
+  // plumas: planas, la de arriba en tono claro y la de abajo en sombra, con nervadura
+  for (let i = 0; i < 3; i++){
+    const x0 = -L / 2 + f * i * 0.9;
+    for (const lado of [-1, 1]){
+      ctx.fillStyle = lado < 0 ? '#e8295f' : '#a3123f';
+      ctx.beginPath();
+      ctx.moveTo(x0 + f, 0);
+      ctx.lineTo(x0, lado * fw);
+      ctx.lineTo(x0 - f * 0.9, lado * fw);
+      ctx.lineTo(x0, 0);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = lado < 0 ? 'rgba(255,190,205,.55)' : 'rgba(30,2,14,.35)';
+      ctx.lineWidth = linea;
+      ctx.beginPath(); ctx.moveTo(x0 + f * 0.4, 0); ctx.lineTo(x0 - f * 0.45, lado * fw); ctx.stroke();
+    }
+  }
+  // amarre de las plumas
+  ctx.fillStyle = '#c4164a';
+  ctx.fillRect(-L / 2 - f * 0.9, -sh * 0.8, f * 3.4, sh * 1.6);
+  ctx.restore();
+}
+
+/* Herida donde se hunde la flecha (2D): piel hundida, arruguitas, hueco y borde con luz */
+function dibujarHeridaEntrada(x, y, ang, r){
+  ctx.save();
+  ctx.beginPath(); trazarContorno(); ctx.clip();
+  ctx.translate(x, y);
+  ctx.rotate(ang);
+  const grosor = Math.max(1.2, escalaH * 0.13);
+  ctx.fillStyle = 'rgba(30,3,16,.5)';
+  ctx.beginPath(); ctx.ellipse(0, 0, r * 0.95, r * 1.2, 0, 0, 6.283); ctx.fill();
+  ctx.strokeStyle = 'rgba(30,3,16,.5)';
+  ctx.lineWidth = grosor;
+  ctx.lineCap = 'round';
+  for (const lado of [-1, 1]){
+    ctx.beginPath(); ctx.moveTo(-r * 0.2, lado * r * 1.15); ctx.lineTo(-r * 0.95, lado * r * 1.8); ctx.stroke();
+  }
+  ctx.fillStyle = '#12030a';
+  ctx.beginPath(); ctx.ellipse(0, 0, r * 0.55, r * 0.9, 0, 0, 6.283); ctx.fill();
+  ctx.strokeStyle = 'rgba(255,150,170,.6)';
+  ctx.beginPath(); ctx.ellipse(0, 0, r * 0.55, r * 0.9, 0, Math.PI * 0.8, Math.PI * 1.45); ctx.stroke();
+  ctx.restore();
+}
+/* Sombra plana que el asta proyecta sobre el corazón (solo el tramo que va por delante) */
+function dibujarSombras(ax, ay, dx, dy, a, b, sh){
+  if (b <= a) return;
+  ctx.save();
+  ctx.beginPath(); trazarContorno(); ctx.clip();
+  ctx.translate(escalaH * 0.55, escalaH * 0.85);
+  ctx.lineCap = 'butt';
+  ctx.strokeStyle = 'rgba(12,1,8,.4)';
+  ctx.lineWidth = sh * 1.1;
+  ctx.beginPath();
+  ctx.moveTo(ax + dx * a, ay + dy * a);
+  ctx.lineTo(ax + dx * b, ay + dy * b);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function impactar(t, px, py){
+  tImpacto = t;
+  ix = px; iy = py;
+  proxGota = t + 0.4;
+  // onda de choque sobre las partículas
+  for (const p of particulas){
+    const ddx = p.x - ix, ddy = p.y - iy;
+    const d = Math.hypot(ddx, ddy) + 1;
+    const fuerza = 20 * Math.exp(-d / (escalaH * 10));
+    p.vx += ddx / d * fuerza;
+    p.vy += ddy / d * fuerza;
+    if (d < escalaH * 9) p.color = SANGRE[(Math.random() * SANGRE.length) | 0];
+  }
+}
+
+/* =====================================================================
+   🌻  SEGUNDA PANTALLA: JARDÍN DE FLORES AMARILLAS
+   ---------------------------------------------------------------------
+   Las cabezas de las flores se dibujan una sola vez como "stickers" (sprites):
+   3 tipos (girasol, margarita y botón de oro) × 3 tonos de amarillo × 3 distancias
+   (las lejanas se ven más oscuras, como entre la niebla). Después solo se pegan
+   escaladas y giradas, así el celular no sufre. Mismo estilo plano de dos tonos
+   (luz arriba / sombra abajo) que el corazón y la flecha.
+   ===================================================================== */
+const TAU = Math.PI * 2;
+const jardin = document.getElementById('jardin');
+const jctx = jardin.getContext('2d');
+const btnSiguiente = document.getElementById('siguiente');
+let jardinIniciado = false;
+let jardinDesde = 0;            // instante (ms) en que se tocó el botón
+let tJ0 = 0;                    // instante (ms) en que empieza a correr el reloj del jardín
+let flores = [], polen = [], petalosJ = [], chispas = [];
+let sprites = null;
+
+/* Tonos de amarillo: luz (arriba), base y sombra (abajo) */
+const TONOS = [
+  { luz: '#ffe45c', base: '#ffc81e', sombra: '#e69500' },   // dorado
+  { luz: '#fff08a', base: '#ffd83d', sombra: '#f0a800' },   // limón
+  { luz: '#ffd83a', base: '#ffb810', sombra: '#d47f00' }    // ámbar
+];
+const NIEBLA = [0.55, 0.28, 0];          // cuánto se "esconde" cada capa (0 = nítida): lejos, medio, cerca
+const RADIO_SPRITE = [64, 100, 190];     // resolución del sticker en cada capa
+const FONDO_RGB = [18, 6, 15];           // color de la noche (--noche), hacia donde se apaga la niebla
+const PALETA_PETALOS = ['#ffd83d', '#ffc81e', '#fff08a', '#f0a800'];
+
+/* Acerca un color hex hacia el fondo oscuro (k = 0 igual, k = 1 fondo) */
+function mezcla(hex, k){
+  const n = parseInt(hex.slice(1), 16);
+  const c = [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  return 'rgb(' + c.map((v, i) => Math.round(v + (FONDO_RGB[i] - v) * k)).join(',') + ')';
+}
+function circulo(g, x, y, r){ g.beginPath(); g.arc(x, y, r, 0, TAU); g.fill(); }
+
+/* Un pétalo que sale del centro hacia +x: mitad iluminada, mitad en sombra y pliegue al medio.
+   punta = true → pétalo puntiagudo (girasol); false → punta redonda (margarita, botón de oro) */
+function petalo(g, ang, ini, fin, ancho, cLuz, cSombra, cLinea, punta){
+  const lg = fin - ini;
+  const c2x = punta ? ini + lg * 0.72 : fin;
+  const c2y = punta ? 0.85 : 1;
+  g.save();
+  g.rotate(ang);
+  g.fillStyle = cLuz;
+  g.beginPath();
+  g.moveTo(ini, 0);
+  g.bezierCurveTo(ini + lg * 0.2, -ancho * 1.15, c2x, -ancho * c2y, fin, 0);
+  g.closePath(); g.fill();
+  g.fillStyle = cSombra;
+  g.beginPath();
+  g.moveTo(ini, 0);
+  g.bezierCurveTo(ini + lg * 0.2, ancho * 1.15, c2x, ancho * c2y, fin, 0);
+  g.closePath(); g.fill();
+  g.strokeStyle = cLinea;
+  g.lineWidth = Math.max(0.8, lg * 0.012);
+  g.beginPath(); g.moveTo(ini, 0); g.lineTo(fin * 0.93, 0); g.stroke();
+  g.restore();
+}
+
+/* Dibuja una cabeza de flor en su propio lienzo pequeño.
+   tipo: 0 = girasol, 1 = margarita amarilla, 2 = botón de oro */
+function crearSprite(tipo, tono, banda){
+  const R = RADIO_SPRITE[banda], k = NIEBLA[banda], S = (R + 6) * 2;
+  const c = document.createElement('canvas');
+  c.width = c.height = S;
+  const g = c.getContext('2d');
+  g.translate(S / 2, S / 2);
+  g.lineCap = 'round';
+  const T = TONOS[tono];
+  const luz = mezcla(T.luz, k), base = mezcla(T.base, k), sombra = mezcla(T.sombra, k);
+  const linea = mezcla('#8a4a00', k);
+
+  if (tipo === 0){
+    // GIRASOL: dos anillos de pétalos puntiagudos y un disco oscuro con semillas en espiral
+    const n = 16;
+    for (let i = 0; i < n; i++) petalo(g, i / n * TAU, R * 0.2, R, R * 0.17, base, sombra, linea, true);
+    for (let i = 0; i < n; i++) petalo(g, (i + 0.5) / n * TAU, R * 0.2, R * 0.88, R * 0.16, luz, base, linea, true);
+    g.fillStyle = mezcla('#2b0d0a', k); circulo(g, 0, 0, R * 0.45);
+    g.fillStyle = mezcla('#4a1c0e', k); circulo(g, -R * 0.025, -R * 0.03, R * 0.41);
+    g.fillStyle = mezcla('#9a5520', k);
+    for (let i = 1; i <= 64; i++){
+      const r = R * 0.37 * Math.sqrt(i / 64), a = i * 2.39996;   // espiral de semillas (ángulo áureo)
+      circulo(g, Math.cos(a) * r, Math.sin(a) * r, Math.max(0.8, R * 0.02));
+    }
+    g.strokeStyle = mezcla('#d99a45', k);                        // brillo en el borde del disco
+    g.lineWidth = Math.max(1.2, R * 0.03);
+    g.beginPath(); g.arc(0, 0, R * 0.33, Math.PI * 1.08, Math.PI * 1.38); g.stroke();
+  } else if (tipo === 1){
+    // MARGARITA: pétalos alargados de punta redonda y un centro dorado pequeño
+    const n = 13;
+    for (let i = 0; i < n; i++) petalo(g, i / n * TAU, R * 0.14, R * 0.9, R * 0.19, base, sombra, linea, false);
+    for (let i = 0; i < n; i++) petalo(g, (i + 0.5) / n * TAU, R * 0.14, R, R * 0.2, luz, base, linea, false);
+    g.fillStyle = mezcla('#c96f00', k); circulo(g, 0, 0, R * 0.28);
+    g.fillStyle = mezcla('#ffb01f', k); circulo(g, -R * 0.02, -R * 0.025, R * 0.24);
+    g.fillStyle = mezcla('#a35a00', k);
+    for (let i = 1; i <= 20; i++){
+      const r = R * 0.19 * Math.sqrt(i / 20), a = i * 2.39996;
+      circulo(g, Math.cos(a) * r, Math.sin(a) * r, Math.max(0.7, R * 0.016));
+    }
+    g.strokeStyle = mezcla('#fff2a6', k);
+    g.lineWidth = Math.max(1.1, R * 0.025);
+    g.beginPath(); g.arc(0, 0, R * 0.2, Math.PI * 1.1, Math.PI * 1.4); g.stroke();
+  } else {
+    // BOTÓN DE ORO: cinco pétalos anchos y redondos, con estambres claros al centro
+    for (let i = 0; i < 5; i++) petalo(g, (i + 0.5) / 5 * TAU, R * 0.05, R * 0.8, R * 0.52, base, sombra, linea, false);
+    for (let i = 0; i < 5; i++) petalo(g, i / 5 * TAU, R * 0.05, R * 0.98, R * 0.52, luz, base, linea, false);
+    g.fillStyle = mezcla('#d98200', k); circulo(g, 0, 0, R * 0.2);
+    g.fillStyle = mezcla('#fff1a0', k);
+    for (let i = 0; i < 10; i++){
+      const a = i / 10 * TAU;
+      circulo(g, Math.cos(a) * R * 0.13, Math.sin(a) * R * 0.13, Math.max(0.8, R * 0.028));
+    }
+    g.fillStyle = mezcla('#b86a00', k); circulo(g, 0, 0, R * 0.07);
+  }
+  return c;
+}
+function crearSprites(){
+  if (sprites) return;
+  sprites = [0, 1, 2].map(banda => [0, 1, 2].map(tipo => TONOS.map((_, tono) => crearSprite(tipo, tono, banda))));
+}
+
+/* ---------- Las flores del jardín ---------- */
+const easeOutCubic = u => 1 - Math.pow(1 - u, 3);
+const easeOutBack = u => 1 + 2.70158 * Math.pow(u - 1, 3) + 1.70158 * Math.pow(u - 1, 2);   // se abre con un pequeño rebote
+/* Punto (q) y pendiente (dq) de una curva de Bézier cuadrática en una sola coordenada: se usa para el tallo curvo */
+function q(a, c, b, s){ const u = 1 - s; return u * u * a + 2 * u * s * c + s * s * b; }
+function dq(a, c, b, s){ return 2 * (1 - s) * (c - a) + 2 * s * (b - c); }
+
+function nuevaFlor(x, y, rMin, rMax, instantanea){
+  const prof = Math.min(1, Math.max(0, y / H));          // 0 = arriba (lejos), 1 = abajo (cerca)
+  const banda = prof < 0.33 ? 0 : prof < 0.66 ? 1 : 2;
+  const r = (rMin + (rMax - rMin) * prof) * (0.85 + Math.random() * 0.3);
+  const az = Math.random();
+  const k = NIEBLA[banda];
+  return {
+    x, y, r, banda,
+    tipo: az < 0.4 ? 0 : az < 0.8 ? 1 : 2,               // 40% girasoles, 40% margaritas, 20% botones de oro
+    tono: (Math.random() * 3) | 0,
+    bx: x + (Math.random() - 0.5) * r * 2.2, by: H + 30,  // donde nace el tallo (abajo, fuera de pantalla)
+    curva: (Math.random() - 0.5) * r * 1.6,               // qué tan curvo es el tallo
+    rot: Math.random() * TAU,
+    giro: (Math.random() - 0.5) * 0.1,                    // giro lentísimo de la flor
+    fase: Math.random() * TAU,
+    vel: 0.6 + Math.random() * 0.7,
+    amp: 1.5 + r * 0.1,                                   // cuánto se mece con el viento
+    // Las de abajo brotan primero y el jardín va subiendo. Con -20 ya nace abierta.
+    demora: instantanea ? -20 : (1 - prof) * 8 + Math.random() * 7,
+    durTallo: 1.1 + (1 - prof) * 1.5,
+    hojas: banda > 0 && Math.random() < 0.85,
+    cTallo: mezcla('#2c5d3b', k), cTalloLuz: mezcla('#4d8f5b', k),
+    cHoja: mezcla('#2f6a3f', k), cHojaLuz: mezcla('#4d9a5b', k)
+  };
+}
+/* Reparte las flores por toda la pantalla en filas: más chicas y pegadas arriba, más grandes abajo */
+function construirJardin(instantanea){
+  flores = [];
+  const lado = Math.min(W, H);
+  const rMin = Math.max(10, lado * 0.035);
+  const rMax = Math.min(96, lado * 0.14);
+  let y = H * 0.02;
+  while (y < H * 1.02 && flores.length < 420){
+    const r0 = rMin + (rMax - rMin) * Math.min(1, y / H);
+    const n = Math.ceil(W / (r0 * 1.7));
+    for (let i = 0; i < n; i++){
+      const x = (i + 0.15 + Math.random() * 0.7) * W / n;
+      const yy = Math.min(H * 1.02, y + (Math.random() - 0.5) * r0 * 0.9);
+      flores.push(nuevaFlor(x, yy, rMin, rMax, instantanea));
+    }
+    y += r0 * 1.35 * (0.8 + Math.random() * 0.3);
+  }
+  flores.sort((a, b) => a.y - b.y);                      // primero las lejanas, luego las cercanas
+}
+
+/* Polen dorado que flota hacia arriba, pétalos amarillos que caen y chispas al tocar */
+function nuevoPolen(abajo){
+  return {
+    x: Math.random() * W, y: abajo ? H + 10 : Math.random() * H,
+    vx: (Math.random() - 0.5) * 0.2, vy: -(0.15 + Math.random() * 0.35),
+    tam: 1 + Math.random() * 2.2, fase: Math.random() * TAU
+  };
+}
+function nuevoPetaloJ(arriba){
+  return {
+    x: Math.random() * W, y: arriba ? -20 : Math.random() * H,
+    tam: 5 + Math.random() * 8, vy: 0.3 + Math.random() * 0.6,
+    balanceo: Math.random() * TAU, amp: 0.3 + Math.random() * 0.8,
+    rot: Math.random() * TAU, vrot: (Math.random() - 0.5) * 0.03,
+    color: PALETA_PETALOS[(Math.random() * PALETA_PETALOS.length) | 0]
+  };
+}
+function construirAmbiente(){
+  polen = Array.from({length: W < 600 ? 26 : 46}, () => nuevoPolen(false));
+  petalosJ = Array.from({length: reducirMovimiento ? 8 : (W < 600 ? 14 : 24)}, () => nuevoPetaloJ(false));
+}
+/* Al tocar la pantalla en el jardín salen pétalos dorados (como los corazones de la primera) */
+function estallidoJardin(x, y){
+  const n = reducirMovimiento ? 4 : 10;
+  for (let i = 0; i < n; i++){
+    const ang = -Math.PI / 2 + (Math.random() - 0.5) * 2.4;
+    const v = 1.2 + Math.random() * 2.6;
+    chispas.push({
+      x, y, vx: Math.cos(ang) * v, vy: Math.sin(ang) * v,
+      tam: 5 + Math.random() * 7, rot: Math.random() * TAU, vrot: (Math.random() - 0.5) * 0.2,
+      vida: 1, color: PALETA_PETALOS[(Math.random() * PALETA_PETALOS.length) | 0]
+    });
+  }
+}
+
+function cuadroJardin(ahora){
+  requestAnimationFrame(cuadroJardin);
+  const t = Math.max(0, (ahora - tJ0) / 1000);
+  jctx.clearRect(0, 0, W, H);
+  jctx.globalAlpha = 1;
+  jctx.lineCap = 'round';
+
+  // --- Flores: tallo que crece, hojas y cabeza que se abre ---
+  for (const f of flores){
+    const a = t - f.demora;                                    // segundos desde que empezó a brotar
+    if (a <= 0) continue;
+    const pt = easeOutCubic(Math.min(1, a / f.durTallo));      // cuánto ha crecido el tallo (0 a 1)
+    const sw = reducirMovimiento ? 0 : Math.sin(t * f.vel + f.fase) * f.amp;   // balanceo
+    const hx = f.x + sw, hy = f.y;                             // dónde queda la cabeza
+    const cx = (f.bx + hx) / 2 + f.curva + sw * 0.35, cy = (f.by + hy) / 2;    // punto de control de la curva
+
+    // tallo
+    const gr = Math.max(1.2, f.r * 0.085);
+    jctx.strokeStyle = f.cTallo;
+    jctx.lineWidth = gr;
+    jctx.beginPath();
+    for (let i = 0; i <= 10; i++){
+      const s = pt * i / 10;
+      const px = q(f.bx, cx, hx, s), py = q(f.by, cy, hy, s);
+      if (i) jctx.lineTo(px, py); else jctx.moveTo(px, py);
+    }
+    jctx.stroke();
+    if (f.banda === 2){                                        // filo de luz en el tallo de las cercanas
+      jctx.strokeStyle = f.cTalloLuz;
+      jctx.lineWidth = gr * 0.3;
+      jctx.stroke();
+    }
+
+    // hojas (una a cada lado, dos tonos como todo lo demás)
+    if (f.hojas){
+      for (let j = 0; j < 2; j++){
+        const s0 = j ? 0.62 : 0.4;
+        if (pt <= s0) continue;
+        const px = q(f.bx, cx, hx, s0), py = q(f.by, cy, hy, s0);
+        const ang = Math.atan2(dq(f.by, cy, hy, s0), dq(f.bx, cx, hx, s0)) + (j ? 0.9 : -0.9);
+        const L = f.r * 0.9 * Math.min(1, (pt - s0) * 3.5), w = L * 0.28;
+        jctx.save();
+        jctx.translate(px, py);
+        jctx.rotate(ang);
+        jctx.fillStyle = f.cHoja;
+        jctx.beginPath(); jctx.moveTo(0, 0); jctx.quadraticCurveTo(L * 0.5, -w, L, 0); jctx.quadraticCurveTo(L * 0.5, w, 0, 0); jctx.fill();
+        jctx.fillStyle = f.cHojaLuz;
+        jctx.beginPath(); jctx.moveTo(0, 0); jctx.quadraticCurveTo(L * 0.5, -w, L, 0); jctx.closePath(); jctx.fill();
+        jctx.restore();
+      }
+    }
+
+    // cabeza: empieza a abrirse justo cuando el tallo casi llega arriba
+    const b = a - f.durTallo * 0.85;
+    if (b > 0){
+      const esc = (f.r / RADIO_SPRITE[f.banda]) * easeOutBack(Math.min(1, b / 1.3));
+      const sp = sprites[f.banda][f.tipo][f.tono];
+      jctx.save();
+      jctx.translate(hx, hy);
+      jctx.rotate(f.rot + (reducirMovimiento ? 0 : t * f.giro) + sw / (f.r * 6));
+      jctx.scale(esc, esc);
+      jctx.drawImage(sp, -sp.width / 2, -sp.height / 2);
+      jctx.restore();
+    }
+  }
+
+  // --- Polen dorado flotando (brilla al mezclarse con la luz) ---
+  if (t > 3){
+    jctx.globalCompositeOperation = 'lighter';
+    const vis = Math.min(1, (t - 3) / 4);
+    jctx.fillStyle = '#ffd84a';
+    for (const p of polen){
+      p.y += p.vy;
+      p.x += p.vx + Math.sin(t + p.fase) * 0.15;
+      if (p.y < -10) Object.assign(p, nuevoPolen(true));
+      jctx.globalAlpha = vis * (0.25 + 0.25 * Math.sin(t * 2 + p.fase));
+      jctx.beginPath(); jctx.arc(p.x, p.y, p.tam, 0, TAU); jctx.fill();
+    }
+    jctx.globalCompositeOperation = 'source-over';
+  }
+
+  // --- Pétalos amarillos que caen (empiezan cuando ya hay varias flores abiertas) ---
+  if (t > 6){
+    jctx.globalAlpha = Math.min(0.75, (t - 6) / 4);
+    for (const p of petalosJ){
+      p.y += p.vy;
+      p.balanceo += 0.02;
+      p.x += Math.sin(p.balanceo) * p.amp;
+      p.rot += p.vrot;
+      if (p.y > H + 20) Object.assign(p, nuevoPetaloJ(true));
+      jctx.fillStyle = p.color;
+      jctx.beginPath(); jctx.ellipse(p.x, p.y, p.tam, p.tam * 0.55, p.rot, 0, TAU); jctx.fill();
+    }
+  }
+
+  // --- Pétalos que salen al tocar la pantalla ---
+  for (let i = chispas.length - 1; i >= 0; i--){
+    const c = chispas[i];
+    c.x += c.vx; c.y += c.vy; c.vy -= 0.02; c.vx *= 0.99; c.rot += c.vrot;
+    c.vida -= 0.011;
+    if (c.vida <= 0){ chispas.splice(i, 1); continue; }
+    jctx.globalAlpha = Math.max(0, c.vida);
+    jctx.fillStyle = c.color;
+    jctx.beginPath(); jctx.ellipse(c.x, c.y, c.tam, c.tam * 0.55, c.rot, 0, TAU); jctx.fill();
+  }
+  jctx.globalAlpha = 1;
+}
+
+/* ---------- Botón: pasar del corazón al jardín ---------- */
+function mostrarBoton(){ btnSiguiente.classList.add('visible'); }
+function irAlJardin(){
+  if (jardinIniciado) return;
+  jardinIniciado = true;
+  btnSiguiente.classList.remove('visible');
+  ocultarMensaje();                                 // el mensaje final se desvanece
+  document.body.classList.add('jardin');            // el corazón se apaga y aparece el jardín (ver CSS)
+  jardinDesde = performance.now();
+  tJ0 = jardinDesde + 700;                          // las primeras flores brotan un instante después
+  crearSprites();
+  construirJardin(reducirMovimiento);
+  construirAmbiente();
+  requestAnimationFrame(cuadroJardin);
+  programarMensajes(MENSAJES_JARDIN);               // los mensajes del jardín
+
+  // Música del jardín: love2.mp3 entra suavecito y love.mp3 se va apagando.
+  // Se pide aquí mismo, dentro del toque del botón, para que el celular deje sonar el audio.
+  // Si love2.mp3 no está en la carpeta, avisa y deja seguir sonando love.mp3.
+  audioJardin.muted = silenciado;
+  audioJardin.volume = 0;
+  audioJardin.play().then(() => {
+    fundir(audioJardin, 1, 2.4);
+    fundir(audio, 0, 2.4, () => audio.pause());
+  }).catch(() => {
+    mostrarAviso('No se pudo reproducir "' + ARCHIVO_MUSICA_JARDIN + '". Ponlo en la misma carpeta que este archivo.');
+  });
+}
+btnSiguiente.addEventListener('pointerdown', e => e.stopPropagation());   // que el toque no haga estallar corazones
+btnSiguiente.addEventListener('click', e => { e.stopPropagation(); irAlJardin(); });
+
+/* ---------- Ciclo de dibujo ---------- */
+function ajustar(){
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  W = innerWidth; H = innerHeight;
+  anguloFlecha = W < H ? FLECHA_ANGULO_VERTICAL : FLECHA_ANGULO;
+  lienzo.width = W * DPR; lienzo.height = H * DPR;
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  // lienzo del jardín (segunda pantalla)
+  jardin.width = W * DPR; jardin.height = H * DPR;
+  jctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  if (jardinIniciado){ construirJardin(true); construirAmbiente(); }   // si giran el celular, el jardín se rehace ya abierto
+  construirParticulas();
+  construirPetalos();
+  actualizarContorno(1);
+}
+addEventListener('resize', ajustar);
+ajustar();
+
+function cuadro(ahora){
+  requestAnimationFrame(cuadro);
+  if (jardinIniciado && ahora - jardinDesde > 2200) return;   // el corazón ya se desvaneció: no gastamos batería dibujándolo
+  ctx.clearRect(0, 0, W, H);
+  if (!iniciado) return;
+  const dt = Math.min(0.05, (ahora - ultimo) / 1000);
+  ultimo = ahora;
+  const t = (ahora - t0) / 1000;
+  const enamorado = tImpacto !== null;
+  const e = escalaH;
+
+  // Latido: doble pulso. Después de la flecha late más rápido y más fuerte.
+  fasePulso += dt / (enamorado ? 0.85 : 1.3);
+  const ciclo = fasePulso % 1;
+  const amp = enamorado ? 0.075 : 0.045;
+  // Golpe: al clavarse la flecha, el corazón rebota una vez (resorte amortiguado)
+  const golpe = (enamorado && !reducirMovimiento) ? 0.07 * Math.exp(-(t - tImpacto) * 9) * Math.cos((t - tImpacto) * 34) : 0;
+  const latido = 1 + golpe + amp * (Math.exp(-Math.pow((ciclo - 0.10) * 14, 2)) + 0.7 * Math.exp(-Math.pow((ciclo - 0.30) * 14, 2)));
+  actualizarContorno(latido);
+
+  // Geometría de la flecha respecto al corazón
+  const dx = Math.cos(anguloFlecha), dy = Math.sin(anguloFlecha);
+  const L = Math.min(e * 46, (W * 0.97 - e * 3.4) / dx);   // deja lugar para que se vean las plumas
+  const sh = Math.max(2.6, e * 0.36);
+  const ax = cxH, ay = cyBase + e * 3.5 * latido;   // centro del corazón (la flecha lo sigue al latir)
+  let s = null, dIn = 0, dHoyo = 0;
+  if (t >= FLECHA_INICIO){
+    dIn = distanciaHastaBorde(ax, ay, -dx, -dy);
+    dHoyo = dIn - e * 2.6;          // la herida está un poco adentro del borde: hasta ahí la flecha va POR DELANTE
+    const u = Math.min(1, (t - FLECHA_INICIO) / FLECHA_DUR);
+    const ease = 1 - Math.pow(1 - u, 3);
+    const s0 = -(Math.hypot(W, H) / 2 + L);
+    s = s0 * (1 - ease);
+    if (!enamorado && s + L / 2 >= -dHoyo){
+      impactar(t, ax - dx * dHoyo, ay - dy * dHoyo);
+    }
+  }
+
+  // Cuerpo sólido: el corazón se vuelve "real" cuando llega la flecha
+  const cuerpo = Math.min(1, Math.max(0, (t - (FLECHA_INICIO - 0.4)) / 1.2)) * 0.9;
+  dibujarCuerpo(cuerpo);
+
+  // Partículas
+  ctx.globalCompositeOperation = 'lighter';
+  for (const p of particulas){
+    const activo = t > p.demora;
+    const objX = p.cx + (p.tx - p.cx) * latido + (reducirMovimiento ? 0 : Math.sin(t * 1.5 + p.fase) * 1.2);
+    const objY = p.cy + (p.ty - p.cy) * latido + (reducirMovimiento ? 0 : Math.cos(t * 1.3 + p.fase) * 1.2);
+    if (activo || reducirMovimiento){
+      const k = reducirMovimiento ? 1 : p.vel * (p.vx || p.vy ? 1.6 : 1);
+      p.x += (objX - p.x) * k;
+      p.y += (objY - p.y) * k;
+    }
+    p.x += p.vx; p.y += p.vy;
+    p.vx *= 0.9; p.vy *= 0.9;
+    ctx.globalAlpha = (activo ? 0.85 : 0.25) * (1 - cuerpo * 0.25);
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.tam, 0, 6.283);
+    ctx.fill();
+  }
+  ctx.globalCompositeOperation = 'source-over';
+
+  // Onda de choque
+  if (enamorado){
+    const a = t - tImpacto;
+    if (a < 1.4){
+      ctx.globalAlpha = 0.6 * (1 - a / 1.4);
+      ctx.strokeStyle = '#ff5d8f';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(ix, iy, a * e * 28, 0, 6.283);
+      ctx.stroke();
+    }
+  }
+
+  // Detalles que hacen que la flecha se vea clavada (todo plano, con sombras duras)
+  if (s !== null){
+    const pt = s - L / 2, tip = s + L / 2;
+    ctx.globalAlpha = 1;
+    if (tip >= -dHoyo){
+      const hx = ax - dx * dHoyo, hy = ay - dy * dHoyo;      // centro de la herida
+      dibujarSombras(ax, ay, dx, dy, Math.max(pt, -dIn), Math.min(tip, -dHoyo), sh);
+      dibujarHeridaEntrada(hx, hy, anguloFlecha, e * 1.2);
+      // hilo de sangre que resbala desde la herida, con su gota al final
+      if (enamorado){
+        const largo = Math.min(e * 11, (t - tImpacto) * e * 1.4);
+        const x0 = hx - e * 0.3, y0 = hy + e * 0.8, ancho = Math.max(2, e * 0.28);
+        ctx.save();
+        ctx.beginPath(); trazarContorno(); ctx.clip();
+        ctx.strokeStyle = ctx.fillStyle = 'rgba(143,15,58,.95)';
+        ctx.lineWidth = ancho;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(x0, y0);
+        ctx.lineTo(x0 + e * 0.3, y0 + largo);
+        ctx.stroke();
+        ctx.beginPath(); ctx.arc(x0 + e * 0.3, y0 + largo + ancho * 0.6, ancho * 0.85, 0, 6.283); ctx.fill();
+        ctx.restore();
+      }
+    }
+  }
+
+  // Pétalos (empiezan a caer después del impacto)
+  ctx.globalAlpha = 0.7;
+  if (enamorado && t > tImpacto + 0.4){
+    for (const p of petalos){
+      p.y += p.vy;
+      p.balanceo += 0.02;
+      p.x += Math.sin(p.balanceo) * p.amp;
+      p.rot += p.vrot;
+      if (p.y > H + 20) Object.assign(p, nuevoPetalo(true));
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.ellipse(p.x, p.y, p.tam, p.tam * 0.55, p.rot, 0, 6.283);
+      ctx.fill();
+    }
+  }
+
+  // Gotas oscuras que caen desde la herida
+  if (enamorado && t >= proxGota){
+    gotas.push({
+      x: ix + (Math.random() - 0.5) * e * 1.4,
+      y: iy + e * 1.2,
+      vy: 0.2, tam: 2 + Math.random() * 2.2
+    });
+    proxGota = t + (t - tImpacto < 8 ? 0.6 + Math.random() * 0.5 : 1.6 + Math.random());
+  }
+  ctx.fillStyle = '#b3123f';
+  for (let i = gotas.length - 1; i >= 0; i--){
+    const g = gotas[i];
+    g.vy += 0.06; g.y += g.vy;
+    if (g.y > H + 10){ gotas.splice(i, 1); continue; }
+    ctx.globalAlpha = 0.85;
+    ctx.beginPath();
+    ctx.ellipse(g.x, g.y, g.tam * 0.7, g.tam * 1.1, 0, 0, 6.283);
+    ctx.fill();
+  }
+
+  // Flecha, en dos capas para que se lea como "clavada" sin necesidad de 3D:
+  //  · por delante del corazón: desde el borde hasta la herida (ahí se hunde)
+  //  · por detrás del corazón: el resto del tramo interior se oculta y la punta sale por el otro borde
+  if (s !== null){
+    let ang = anguloFlecha;
+    const asentada = t - (FLECHA_INICIO + FLECHA_DUR);
+    if (asentada > 0 && !reducirMovimiento){
+      ang += 0.03 * Math.exp(-asentada * 3) * Math.sin(asentada * 40);
+    }
+    const fx = ax + dx * s, fy = ay + dy * s;
+    ctx.globalAlpha = 1;
+    // (1) fuera del corazón: la cola y la punta que asoma por el otro lado
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, 0, W, H);
+    trazarContorno();
+    ctx.clip('evenodd');
+    dibujarFlecha(fx, fy, ang, L);
+    ctx.restore();
+    // (2) dentro del corazón: solo lo que queda antes de la herida
+    ctx.save();
+    ctx.beginPath(); trazarContorno(); ctx.clip();
+    ctx.save();
+    ctx.translate(ax, ay);
+    ctx.rotate(ang);
+    ctx.beginPath();
+    ctx.rect(-(W + H), -(W + H), (W + H) - dHoyo, 2 * (W + H));
+    ctx.restore();
+    ctx.clip();
+    dibujarFlecha(fx, fy, ang, L);
+    ctx.restore();
+  }
+
+  // Destello rojo al impactar
+  if (enamorado){
+    const a = 0.16 * Math.exp(-(t - tImpacto) * 5);
+    if (a > 0.005){
+      ctx.globalAlpha = a;
+      ctx.fillStyle = '#b3123f';
+      ctx.fillRect(0, 0, W, H);
+    }
+  }
+
+  // Corazones al tocar
+  for (let i = flotantes.length - 1; i >= 0; i--){
+    const f = flotantes[i];
+    f.x += f.vx; f.y += f.vy; f.vy -= 0.02; f.vx *= 0.99;
+    f.vida -= 0.011;
+    if (f.vida <= 0){ flotantes.splice(i, 1); continue; }
+    ctx.globalAlpha = Math.max(0, f.vida);
+    ctx.fillStyle = f.color;
+    dibujarCorazon(f.x, f.y, f.s, f.giro);
+  }
+  ctx.globalAlpha = 1;
+}
+requestAnimationFrame(cuadro);
+
+/* ---------- Clic en la pantalla ---------- */
+function comenzar(){
+  iniciado = true;
+  t0 = ultimo = performance.now();
+  document.body.classList.add('on');
+  programarMensajes(MENSAJES);
+  audio.muted = true;              // la música arranca en silencio (eso siempre se permite) y entra a su hora
+  intentarAudio();                 // si el latido no estaba sonando todavía, arranca con este toque
+  setTimeout(entrarMusica, MUSICA_ENTRA_EN * 1000);
+}
+addEventListener('pointerdown', e => {
+  if (!iniciado) { comenzar(); return; }
+  if (jardinIniciado) estallidoJardin(e.clientX, e.clientY);   // en el jardín salen pétalos dorados
+  else estallido(e.clientX, e.clientY);                          // en la primera pantalla, corazones
+});
+/* El audio se desbloquea con el primer gesto de cualquier tipo (en celulares el toque "cuenta" al soltar) */
+['pointerdown', 'pointerup', 'touchend', 'click', 'keydown'].forEach(ev =>
+  addEventListener(ev, intentarAudio, { passive: true }));
+intentarAudio();                   // primer intento al cargar la página (a veces el navegador lo permite)
+audio.addEventListener('error', () => {
+  if (iniciado) mostrarAviso('No se encontró "' + ARCHIVO_MUSICA + '". Ponlo en la misma carpeta que este archivo.');
+});
+</script>
+</body>
+</html>
