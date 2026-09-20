@@ -6,7 +6,7 @@
 <title>Feliz Día del Amor</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,400;1,500&family=Jost:wght@300;400&family=Pinyon+Script&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,400;1,500;1,600&family=Jost:wght@300;400;500&family=Pinyon+Script&display=swap" rel="stylesheet">
 <style>
   :root{
     --noche:#12060f;
@@ -44,7 +44,7 @@
 
   /* ---------- Mensajes ---------- */
   #mensaje{
-    position:fixed;left:0;right:0;bottom:calc(7vh + env(safe-area-inset-bottom,0px));
+    position:fixed;left:0;right:0;bottom:calc(9vh + env(safe-area-inset-bottom,0px));
     z-index:2;padding:0 1.5rem;pointer-events:none;min-height:9rem;
     display:flex;flex-direction:column;align-items:center;justify-content:flex-end;text-align:center;
   }
@@ -57,20 +57,20 @@
     transition:opacity 1.6s ease, filter 1.6s ease, transform 1.6s ease;
   }
   .verso{
-    font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-weight:400;
-    font-size:clamp(1.5rem,4.8vw,2.3rem);line-height:1.3;max-width:24ch;color:var(--hueso);
+    font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-weight:500;
+    font-size:clamp(1.75rem,5.8vw,2.7rem);line-height:1.3;max-width:22ch;color:var(--hueso);
     text-shadow:0 0 24px rgba(179,18,63,.6), 0 2px 10px rgba(0,0,0,.7);
   }
   .sub{
-    margin-top:.9rem;font-weight:300;font-size:1.05rem;line-height:1.5;max-width:32ch;color:var(--coral);
+    margin-top:.9rem;font-weight:400;font-size:1.2rem;line-height:1.5;max-width:30ch;color:var(--coral);
     text-shadow:0 2px 10px rgba(0,0,0,.7);
     white-space:pre-line;   /* respeta los saltos de línea (\n) que pongas en "sub" */
   }
-  .para{margin-bottom:.4rem;font-weight:300;font-size:1rem;color:var(--coral)}
+  .para{margin-bottom:.4rem;font-weight:400;font-size:1.1rem;color:var(--coral)}
   /* Estilo del mensaje final (cuando "titulo: true") */
   #mensaje.titulo .verso{
     font-family:'Pinyon Script','Snell Roundhand',cursive;font-style:normal;font-weight:400;
-    font-size:clamp(3rem,10vw,6.2rem);line-height:1.05;max-width:none;
+    font-size:clamp(3.2rem,11vw,6.6rem);line-height:1.05;max-width:none;
     text-shadow:0 0 30px rgba(225,29,90,.6), 0 2px 10px rgba(0,0,0,.7);
   }
 
@@ -130,48 +130,86 @@
   body.jardin #lienzo{opacity:0}
   #jardin{z-index:1;opacity:0;transition:opacity 2.4s ease .5s}
   body.jardin #jardin{opacity:1}
-  /* Resplandor dorado detrás de las flores (cambia el ambiente del vino al sol) */
+  /* Fondo del jardín: un atardecer. Cielo de noche vino arriba que se calienta hacia el horizonte,
+     con un sol dorado que asoma detrás del campo (a la misma altura del horizonte del canvas: 17%) */
   #resplandor{
     position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0;
-    background:radial-gradient(ellipse 85% 65% at 50% 30%, rgba(255,190,60,.30) 0%, rgba(150,60,30,.20) 45%, transparent 78%);
+    background:
+      radial-gradient(circle at 50% 17%, rgba(255,238,178,.9) 0%, rgba(255,200,90,.6) 5%, rgba(255,150,70,.30) 15%, transparent 40%),
+      radial-gradient(ellipse 130% 38% at 50% 22%, rgba(255,120,100,.34) 0%, rgba(255,170,60,.16) 45%, transparent 78%),
+      linear-gradient(180deg, #12060f 0%, #2a0b24 20%, #4a1236 38%, #5a2530 58%, #2a1010 100%);
     transition:opacity 3s ease .3s;
   }
   body.jardin #resplandor{opacity:1}
+  /* Rayos de luz que salen del sol y giran muy despacio */
+  #rayos{
+    position:fixed;z-index:0;pointer-events:none;opacity:0;
+    left:50%;top:17%;width:230vmax;height:230vmax;margin:-115vmax 0 0 -115vmax;
+    background:repeating-conic-gradient(rgba(255,214,120,.10) 0deg 2.5deg, transparent 2.5deg 11deg);
+    -webkit-mask-image:radial-gradient(circle closest-side, #000 0%, rgba(0,0,0,.55) 18%, transparent 45%);
+            mask-image:radial-gradient(circle closest-side, #000 0%, rgba(0,0,0,.55) 18%, transparent 45%);
+    transition:opacity 4s ease 1s;
+    animation:girar 140s linear infinite;will-change:transform;
+  }
+  body.jardin #rayos{opacity:1}
+  @keyframes girar{to{transform:rotate(360deg)}}
   /* Sombra suave abajo, para que el texto se lea por encima de las flores */
   #velo{
     position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0;
-    background:radial-gradient(ellipse 95% 36% at 50% 94%, rgba(18,6,15,.92) 0%, rgba(18,6,15,.68) 55%, transparent 100%);
+    background:radial-gradient(ellipse 95% 40% at 50% 92%, rgba(18,6,15,.88) 0%, rgba(18,6,15,.6) 55%, transparent 100%);
     transition:opacity 2.4s ease .5s;
   }
   body.jardin #velo{opacity:1}
   /* Los textos de esta pantalla brillan en dorado en vez de en vino */
-  body.jardin .sub, body.jardin .para{color:#ffd98a}
-  body.jardin .verso{text-shadow:0 0 24px rgba(255,170,30,.55), 0 2px 10px rgba(0,0,0,.8)}
-  body.jardin #mensaje.titulo .verso{text-shadow:0 0 30px rgba(255,190,40,.65), 0 2px 10px rgba(0,0,0,.8)}
+  body.jardin .sub, body.jardin .para{color:#ffe3a3;font-weight:500}
+  body.jardin .verso{font-weight:600;text-shadow:0 0 18px rgba(18,6,15,.95), 0 0 30px rgba(255,170,30,.4), 0 2px 8px rgba(0,0,0,.9)}
+  body.jardin .sub, body.jardin .para{text-shadow:0 0 12px rgba(18,6,15,.95), 0 2px 8px rgba(0,0,0,.9)}
+  body.jardin #mensaje.titulo .verso{font-weight:400;text-shadow:0 0 22px rgba(18,6,15,.95), 0 0 34px rgba(255,190,40,.55), 0 2px 8px rgba(0,0,0,.9)}
+  /* Mancha oscura y suave justo detrás del texto: así se lee aunque atrás haya flores brillantes */
+  #mensaje::before{
+    content:'';position:absolute;z-index:-1;pointer-events:none;
+    left:-4%;right:-4%;top:-2.4rem;bottom:-1.6rem;
+    background:radial-gradient(ellipse 62% 58% at 50% 52%, rgba(18,6,15,.88) 0%, rgba(18,6,15,.68) 45%, rgba(18,6,15,0) 100%);
+    opacity:0;transition:opacity .7s ease;
+  }
+  body.jardin #mensaje.visible::before{opacity:1;transition:opacity 1.6s ease}
 
   /* ---------- Responsive: celulares ---------- */
   /* width:max-content evita que el botón se parta en dos líneas: con left:50% el navegador solo le daría la mitad de la pantalla */
   #siguiente{width:max-content;max-width:calc(100vw - 2rem);justify-content:center;text-align:center}
+  /* Celulares en vertical: el texto sube a ~14% de la altura para no quedar pegado al borde ni bajo las barras del navegador */
+  @media (max-width:700px) and (min-height:561px){
+    #mensaje{bottom:calc(14vh + env(safe-area-inset-bottom,0px))}
+    #mensaje.subida{bottom:calc(8.6rem + env(safe-area-inset-bottom,0px))}
+    #siguiente{bottom:calc(2.4rem + env(safe-area-inset-bottom,0px))}
+  }
+  /* Celulares en vertical más bajitos (≈ 700px de alto o menos): un poco menos de subida para no tapar la punta del corazón */
+  @media (max-width:700px) and (min-height:561px) and (max-height:700px){
+    #mensaje{bottom:calc(11vh + env(safe-area-inset-bottom,0px))}
+    #mensaje.subida{bottom:calc(7.2rem + env(safe-area-inset-bottom,0px))}
+    #siguiente{bottom:calc(1.6rem + env(safe-area-inset-bottom,0px))}
+  }
   /* Celulares angostos (≈ 360px o menos) */
   @media (max-width:380px){
     #siguiente{padding:.75rem 1.2rem;font-size:.95rem;gap:.5rem}
     #mensaje{padding:0 1rem}
-    #mensaje.titulo .verso{font-size:2.7rem}
-    .sub{font-size:1rem}
+    #mensaje.titulo .verso{font-size:2.9rem}
+    .sub{font-size:1.1rem}
   }
   /* Pantallas bajitas (por ejemplo, celular acostado): todo más compacto para que el texto no tape el corazón ni las flores */
   @media (max-height:560px){
     #mensaje{bottom:calc(3vh + env(safe-area-inset-bottom,0px));min-height:0}
     #mensaje.subida{bottom:calc(3.9rem + env(safe-area-inset-bottom,0px))}
-    .verso{font-size:clamp(1.2rem,5vh,1.8rem);max-width:40ch}
-    .sub{font-size:.95rem;margin-top:.4rem;max-width:56ch}
+    .verso{font-size:clamp(1.35rem,6vh,2rem);max-width:40ch}
+    .sub{font-size:1.05rem;margin-top:.4rem;max-width:56ch}
     #mensaje.titulo .verso{font-size:clamp(2.2rem,12vh,3.6rem)}
     #siguiente{bottom:calc(.7rem + env(safe-area-inset-bottom,0px));padding:.55rem 1.2rem;font-size:.92rem}
-    #velo{background:radial-gradient(ellipse 95% 50% at 50% 100%, rgba(18,6,15,.92) 0%, rgba(18,6,15,.68) 55%, transparent 100%)}
+    #velo{background:radial-gradient(ellipse 95% 55% at 50% 100%, rgba(18,6,15,.88) 0%, rgba(18,6,15,.6) 55%, transparent 100%)}
   }
 
   @media (prefers-reduced-motion:reduce){
     #siguiente.visible{animation:none}
+    #rayos{animation:none}
     #intro svg{animation:none}
     #mensaje > *, #mensaje.visible > *{transition-duration:.01s}
   }
@@ -179,8 +217,9 @@
 </head>
 <body>
 
-<!-- Resplandor dorado de fondo (solo se ve en la segunda pantalla) -->
+<!-- Cielo de atardecer y rayos de luz de fondo (solo se ven en la segunda pantalla) -->
 <div id="resplandor" aria-hidden="true"></div>
+<div id="rayos" aria-hidden="true"></div>
 
 <canvas id="lienzo" aria-hidden="true"></canvas>
 <!-- Segunda pantalla: jardín de flores amarillas -->
@@ -271,7 +310,7 @@ const MENSAJES_JARDIN = [
 /* ✏️  DEDICATORIA (opcional)
    Aparece sobre el mensaje final como "Para ...".
    Déjalo vacío ("") para no mostrar nada, o cámbialo por un nombre.
-   También funciona por URL: dia-del-amor.html?para=María           */
+   También funciona por URL: index.html?para=María           */
 const NOMBRE = new URLSearchParams(location.search).get('para') || "";
 
 /* ✏️  AUDIO (los archivos deben estar en la misma carpeta que este HTML)
@@ -283,7 +322,7 @@ const ARCHIVO_LATIDO  = "latido.mp3";
 const ARCHIVO_MUSICA  = "love.mp3";
 const MUSICA_ENTRA_EN = 4.5;   // segundo (desde el primer toque) en que entra la música
 const LATIDO_FINAL    = 0;     // volumen (0 a 1) al que baja el latido cuando entra la música (0 = se apaga)
-const VOLUMEN_LATIDO  = 1;  // volumen (0 a 1) del latido mientras suena. Antes sonaba a 1; sube o baja este número a tu gusto
+const VOLUMEN_LATIDO  = 1;     // ← AQUÍ cambias el volumen del latido (0 a 1). 1 = a todo volumen, 0.5 = mitad, 0 = mudo
 const ARCHIVO_MUSICA_JARDIN = "love2.mp3";   // suena al tocar el botón de la pantalla de flores (misma carpeta que este HTML)
 
 /* ⚙️  TIEMPOS DE LA FLECHA (en segundos desde el primer clic) */
@@ -349,7 +388,7 @@ function intentarAudio(){
   if (!latidoSonando && !musicaLibre){
     audioLatido.play().then(() => {
       latidoSonando = true;
-      if (!musicaLibre) fundir(audioLatido, VOLUMEN_LATIDO, 1.2);   // el latido sube solo hasta VOLUMEN_LATIDO (suave)
+      if (!musicaLibre) fundir(audioLatido, VOLUMEN_LATIDO, 1.2);   // el latido sube hasta VOLUMEN_LATIDO
     }).catch(() => {});
   }
   if (iniciado && !jardinIniciado && audio.paused){   // en el jardín ya no debe volver love.mp3
@@ -688,13 +727,13 @@ function impactar(t, px, py){
 }
 
 /* =====================================================================
-   🌻  SEGUNDA PANTALLA: JARDÍN DE FLORES AMARILLAS
+   🌻  SEGUNDA PANTALLA: JARDÍN DE FLORES LUMINOSAS
    ---------------------------------------------------------------------
-   Las cabezas de las flores se dibujan una sola vez como "stickers" (sprites):
-   3 tipos (girasol, margarita y botón de oro) × 3 tonos de amarillo × 3 distancias
-   (las lejanas se ven más oscuras, como entre la niebla). Después solo se pegan
-   escaladas y giradas, así el celular no sufre. Mismo estilo plano de dos tonos
-   (luz arriba / sombra abajo) que el corazón y la flecha.
+   Las flores hablan el mismo lenguaje que el corazón: pétalos con degradado y
+   borde de luz, rodeados de partículas que brillan (mezcla "lighter").
+   Cada cabeza se dibuja una sola vez como "sticker" (sprite): 3 tipos × 3 tonos
+   × 3 distancias. Las lejanas se dibujan a baja resolución A PROPÓSITO: salen
+   suaves y desenfocadas (profundidad de campo) y el celular trabaja poco.
    ===================================================================== */
 const TAU = Math.PI * 2;
 const jardin = document.getElementById('jardin');
@@ -703,112 +742,168 @@ const btnSiguiente = document.getElementById('siguiente');
 let jardinIniciado = false;
 let jardinDesde = 0;            // instante (ms) en que se tocó el botón
 let tJ0 = 0;                    // instante (ms) en que empieza a correr el reloj del jardín
-let flores = [], polen = [], petalosJ = [], chispas = [];
-let sprites = null;
+let flores = [], polen = [], petalosJ = [], chispas = [], estrellas = [], bokeh = [];
+let sprites = null, spritesBokeh = null;
+let horizonte = 0;              // altura (px) donde empieza el campo; arriba queda el cielo
 
-/* Tonos de amarillo: luz (arriba), base y sombra (abajo) */
+/* Tonos de amarillo: prof (base del pétalo), base, luz (punta) y rim (borde de luz) */
 const TONOS = [
-  { luz: '#ffe45c', base: '#ffc81e', sombra: '#e69500' },   // dorado
-  { luz: '#fff08a', base: '#ffd83d', sombra: '#f0a800' },   // limón
-  { luz: '#ffd83a', base: '#ffb810', sombra: '#d47f00' }    // ámbar
+  { prof: '#f59e0b', base: '#ffd23f', luz: '#fff3b0', rim: '#fff8d6' },   // dorado
+  { prof: '#e8830a', base: '#ffc233', luz: '#ffe9a0', rim: '#fff1c2' },   // ámbar
+  { prof: '#f7b500', base: '#ffe066', luz: '#fffac2', rim: '#ffffe6' }    // limón
 ];
-const NIEBLA = [0.55, 0.28, 0];          // cuánto se "esconde" cada capa (0 = nítida): lejos, medio, cerca
-const RADIO_SPRITE = [64, 100, 190];     // resolución del sticker en cada capa
+/* Colores de las partículas: los mismos tonos cálidos del corazón */
+const CHISPAS = ['#fff3b0', '#ffd23f', '#ffb01f', '#ff9a8b'];
+const NIEBLA = [0.35, 0.15, 0];          // cuánto se "apaga" cada capa (0 = nítida): lejos, medio, cerca
+const RADIO_SPRITE = [20, 80, 170];      // resolución del sticker en cada capa (la lejana es baja a propósito → desenfoque)
+const HALO = 1.3;                        // el sticker es 30% más grande que la flor para que quepa el halo de luz
 const FONDO_RGB = [18, 6, 15];           // color de la noche (--noche), hacia donde se apaga la niebla
 const PALETA_PETALOS = ['#ffd83d', '#ffc81e', '#fff08a', '#f0a800'];
 
-/* Acerca un color hex hacia el fondo oscuro (k = 0 igual, k = 1 fondo) */
-function mezcla(hex, k){
+/* Devuelve un color rgba() acercado hacia el fondo oscuro (k = 0 igual, k = 1 fondo) con transparencia a */
+function col(hex, k, a){
   const n = parseInt(hex.slice(1), 16);
-  const c = [(n >> 16) & 255, (n >> 8) & 255, n & 255];
-  return 'rgb(' + c.map((v, i) => Math.round(v + (FONDO_RGB[i] - v) * k)).join(',') + ')';
+  const c = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v, i) => Math.round(v + (FONDO_RGB[i] - v) * k));
+  return 'rgba(' + c.join(',') + ',' + (a === undefined ? 1 : a) + ')';
 }
 function circulo(g, x, y, r){ g.beginPath(); g.arc(x, y, r, 0, TAU); g.fill(); }
+function punto(g, x, y, r, color){ g.fillStyle = color; circulo(g, x, y, Math.max(0.5, r)); }
 
-/* Un pétalo que sale del centro hacia +x: mitad iluminada, mitad en sombra y pliegue al medio.
-   punta = true → pétalo puntiagudo (girasol); false → punta redonda (margarita, botón de oro) */
-function petalo(g, ang, ini, fin, ancho, cLuz, cSombra, cLinea, punta){
+/* Un pétalo que sale del centro hacia +x. Degradado (profundo en la base, claro en la punta),
+   borde fino con luz y una vena central tenue. Sin contornos gruesos: se ve limpio y moderno.
+   punta = true → puntiagudo (girasol); false → punta redonda (margarita, anémona) */
+function petalo(g, ang, ini, fin, ancho, T, k, alfa, punta){
   const lg = fin - ini;
   const c2x = punta ? ini + lg * 0.72 : fin;
   const c2y = punta ? 0.85 : 1;
   g.save();
   g.rotate(ang);
-  g.fillStyle = cLuz;
+  const gr = g.createLinearGradient(ini, 0, fin, 0);
+  gr.addColorStop(0, col(T.prof, k, alfa));
+  gr.addColorStop(0.5, col(T.base, k, alfa));
+  gr.addColorStop(1, col(T.luz, k, alfa * 0.9));
+  g.fillStyle = gr;
   g.beginPath();
   g.moveTo(ini, 0);
   g.bezierCurveTo(ini + lg * 0.2, -ancho * 1.15, c2x, -ancho * c2y, fin, 0);
-  g.closePath(); g.fill();
-  g.fillStyle = cSombra;
-  g.beginPath();
-  g.moveTo(ini, 0);
-  g.bezierCurveTo(ini + lg * 0.2, ancho * 1.15, c2x, ancho * c2y, fin, 0);
-  g.closePath(); g.fill();
-  g.strokeStyle = cLinea;
-  g.lineWidth = Math.max(0.8, lg * 0.012);
-  g.beginPath(); g.moveTo(ini, 0); g.lineTo(fin * 0.93, 0); g.stroke();
+  g.bezierCurveTo(c2x, ancho * c2y, ini + lg * 0.2, ancho * 1.15, ini, 0);
+  g.closePath();
+  g.fill();
+  g.strokeStyle = col(T.rim, k, 0.5);                       // borde de luz
+  g.lineWidth = Math.max(0.5, lg * 0.008);
+  g.stroke();
+  g.strokeStyle = col(T.prof, k, 0.35);                     // vena central
+  g.beginPath(); g.moveTo(ini + lg * 0.05, 0); g.lineTo(fin * 0.9, 0); g.stroke();
   g.restore();
 }
 
 /* Dibuja una cabeza de flor en su propio lienzo pequeño.
-   tipo: 0 = girasol, 1 = margarita amarilla, 2 = botón de oro */
+   tipo: 0 = girasol, 1 = margarita, 2 = anémona (pétalos anchos) */
 function crearSprite(tipo, tono, banda){
-  const R = RADIO_SPRITE[banda], k = NIEBLA[banda], S = (R + 6) * 2;
+  const R = RADIO_SPRITE[banda], k = NIEBLA[banda], RT = Math.ceil(R * HALO), S = RT * 2;
   const c = document.createElement('canvas');
   c.width = c.height = S;
   const g = c.getContext('2d');
-  g.translate(S / 2, S / 2);
+  g.translate(RT, RT);
   g.lineCap = 'round';
+  g.lineJoin = 'round';
   const T = TONOS[tono];
-  const luz = mezcla(T.luz, k), base = mezcla(T.base, k), sombra = mezcla(T.sombra, k);
-  const linea = mezcla('#8a4a00', k);
 
+  // halo cálido detrás de la flor (al juntarse varias flores se forma una neblina dorada)
+  const halo = g.createRadialGradient(0, 0, R * 0.2, 0, 0, RT);
+  halo.addColorStop(0, col(T.base, k, 0.26));
+  halo.addColorStop(0.6, col(T.prof, k, 0.09));
+  halo.addColorStop(1, col(T.prof, k, 0));
+  g.fillStyle = halo;
+  circulo(g, 0, 0, RT);
+
+  let nPet;
   if (tipo === 0){
-    // GIRASOL: dos anillos de pétalos puntiagudos y un disco oscuro con semillas en espiral
-    const n = 16;
-    for (let i = 0; i < n; i++) petalo(g, i / n * TAU, R * 0.2, R, R * 0.17, base, sombra, linea, true);
-    for (let i = 0; i < n; i++) petalo(g, (i + 0.5) / n * TAU, R * 0.2, R * 0.88, R * 0.16, luz, base, linea, true);
-    g.fillStyle = mezcla('#2b0d0a', k); circulo(g, 0, 0, R * 0.45);
-    g.fillStyle = mezcla('#4a1c0e', k); circulo(g, -R * 0.025, -R * 0.03, R * 0.41);
-    g.fillStyle = mezcla('#9a5520', k);
-    for (let i = 1; i <= 64; i++){
-      const r = R * 0.37 * Math.sqrt(i / 64), a = i * 2.39996;   // espiral de semillas (ángulo áureo)
-      circulo(g, Math.cos(a) * r, Math.sin(a) * r, Math.max(0.8, R * 0.02));
-    }
-    g.strokeStyle = mezcla('#d99a45', k);                        // brillo en el borde del disco
-    g.lineWidth = Math.max(1.2, R * 0.03);
-    g.beginPath(); g.arc(0, 0, R * 0.33, Math.PI * 1.08, Math.PI * 1.38); g.stroke();
+    // GIRASOL: dos anillos de pétalos finos y un disco oscuro color vino con borde de luz
+    nPet = 22;
+    for (let i = 0; i < nPet; i++) petalo(g, i / nPet * TAU, R * 0.2, R, R * 0.11, T, k, 0.8, true);
+    for (let i = 0; i < nPet; i++) petalo(g, (i + 0.5) / nPet * TAU, R * 0.2, R * 0.88, R * 0.1, T, k, 0.88, true);
+    const d = g.createRadialGradient(-R * 0.06, -R * 0.06, R * 0.02, 0, 0, R * 0.46);
+    d.addColorStop(0, col('#5a1a30', k)); d.addColorStop(0.7, col('#2b0a1c', k)); d.addColorStop(1, col('#1a0510', k));
+    g.fillStyle = d;
+    circulo(g, 0, 0, R * 0.46);
+    g.strokeStyle = col(T.luz, k, 0.65);
+    g.lineWidth = Math.max(0.6, R * 0.014);
+    g.beginPath(); g.arc(0, 0, R * 0.46, 0, TAU); g.stroke();
   } else if (tipo === 1){
-    // MARGARITA: pétalos alargados de punta redonda y un centro dorado pequeño
-    const n = 13;
-    for (let i = 0; i < n; i++) petalo(g, i / n * TAU, R * 0.14, R * 0.9, R * 0.19, base, sombra, linea, false);
-    for (let i = 0; i < n; i++) petalo(g, (i + 0.5) / n * TAU, R * 0.14, R, R * 0.2, luz, base, linea, false);
-    g.fillStyle = mezcla('#c96f00', k); circulo(g, 0, 0, R * 0.28);
-    g.fillStyle = mezcla('#ffb01f', k); circulo(g, -R * 0.02, -R * 0.025, R * 0.24);
-    g.fillStyle = mezcla('#a35a00', k);
-    for (let i = 1; i <= 20; i++){
-      const r = R * 0.19 * Math.sqrt(i / 20), a = i * 2.39996;
-      circulo(g, Math.cos(a) * r, Math.sin(a) * r, Math.max(0.7, R * 0.016));
-    }
-    g.strokeStyle = mezcla('#fff2a6', k);
-    g.lineWidth = Math.max(1.1, R * 0.025);
-    g.beginPath(); g.arc(0, 0, R * 0.2, Math.PI * 1.1, Math.PI * 1.4); g.stroke();
+    // MARGARITA: pétalos alargados de punta redonda y un centro dorado luminoso
+    nPet = 14;
+    for (let i = 0; i < nPet; i++) petalo(g, i / nPet * TAU, R * 0.12, R * 0.92, R * 0.17, T, k, 0.78, false);
+    for (let i = 0; i < nPet; i++) petalo(g, (i + 0.5) / nPet * TAU, R * 0.12, R, R * 0.17, T, k, 0.88, false);
+    const d = g.createRadialGradient(-R * 0.04, -R * 0.04, R * 0.01, 0, 0, R * 0.27);
+    d.addColorStop(0, col('#fff3b0', k)); d.addColorStop(0.6, col('#ffb01f', k)); d.addColorStop(1, col('#d97706', k));
+    g.fillStyle = d;
+    circulo(g, 0, 0, R * 0.27);
+    g.strokeStyle = col('#fff8d6', k, 0.6);
+    g.lineWidth = Math.max(0.6, R * 0.012);
+    g.beginPath(); g.arc(0, 0, R * 0.27, 0, TAU); g.stroke();
   } else {
-    // BOTÓN DE ORO: cinco pétalos anchos y redondos, con estambres claros al centro
-    for (let i = 0; i < 5; i++) petalo(g, (i + 0.5) / 5 * TAU, R * 0.05, R * 0.8, R * 0.52, base, sombra, linea, false);
-    for (let i = 0; i < 5; i++) petalo(g, i / 5 * TAU, R * 0.05, R * 0.98, R * 0.52, luz, base, linea, false);
-    g.fillStyle = mezcla('#d98200', k); circulo(g, 0, 0, R * 0.2);
-    g.fillStyle = mezcla('#fff1a0', k);
-    for (let i = 0; i < 10; i++){
-      const a = i / 10 * TAU;
-      circulo(g, Math.cos(a) * R * 0.13, Math.sin(a) * R * 0.13, Math.max(0.8, R * 0.028));
-    }
-    g.fillStyle = mezcla('#b86a00', k); circulo(g, 0, 0, R * 0.07);
+    // ANÉMONA: ocho pétalos anchos y sedosos, con estambres brillantes al centro
+    nPet = 8;
+    for (let i = 0; i < nPet; i++) petalo(g, (i + 0.5) / nPet * TAU, R * 0.05, R * 0.86, R * 0.34, T, k, 0.78, false);
+    for (let i = 0; i < nPet; i++) petalo(g, i / nPet * TAU, R * 0.05, R, R * 0.34, T, k, 0.88, false);
+    const d = g.createRadialGradient(0, 0, R * 0.01, 0, 0, R * 0.17);
+    d.addColorStop(0, col('#ffd23f', k)); d.addColorStop(1, col('#b45309', k));
+    g.fillStyle = d;
+    circulo(g, 0, 0, R * 0.17);
   }
+
+  // Partículas que brillan (el mismo recurso del corazón): se suman a la luz de lo que hay debajo
+  g.globalCompositeOperation = 'lighter';
+  if (tipo === 0){
+    for (let i = 1; i <= 80; i++){                                 // semillas en espiral (ángulo áureo)
+      const r = R * 0.42 * Math.sqrt(i / 80), a = i * 2.39996;
+      const x = Math.cos(a) * r, y = Math.sin(a) * r;
+      punto(g, x, y, R * 0.03, col('#ffb01f', k, 0.16));          // resplandor suave
+      punto(g, x, y, R * 0.014, col(i % 3 ? '#ffd23f' : '#fff3b0', k, 0.9));
+    }
+  } else if (tipo === 1){
+    for (let i = 1; i <= 28; i++){
+      const r = R * 0.22 * Math.sqrt(i / 28), a = i * 2.39996;
+      punto(g, Math.cos(a) * r, Math.sin(a) * r, R * 0.012, col('#fff3b0', k, 0.75));
+    }
+  } else {
+    for (let i = 0; i < 14; i++){                                  // estambres
+      const a = i / 14 * TAU + 0.2, r = R * (0.1 + 0.07 * (i % 2));
+      punto(g, Math.cos(a) * r, Math.sin(a) * r, R * 0.02, col('#fff3b0', k, 0.9));
+    }
+  }
+  for (let i = 0; i < nPet * 6; i++){                               // partículas sobre los pétalos
+    const a = Math.random() * TAU, r = R * (0.3 + Math.random() * 0.7);
+    punto(g, Math.cos(a) * r, Math.sin(a) * r, R * (0.006 + Math.random() * 0.014),
+          col(CHISPAS[(Math.random() * CHISPAS.length) | 0], k, 0.35 + Math.random() * 0.5));
+  }
+  for (let i = 0; i < 34; i++){                                     // halo de partículas alrededor (como las del corazón)
+    const a = Math.random() * TAU, r = R * (1.02 + Math.random() * 0.26);
+    punto(g, Math.cos(a) * r, Math.sin(a) * r, R * (0.005 + Math.random() * 0.011),
+          col(CHISPAS[(Math.random() * CHISPAS.length) | 0], k, 0.25 + Math.random() * 0.4));
+  }
+  g.globalCompositeOperation = 'source-over';
+  return c;
+}
+/* Círculo de luz suave (bokeh) para el fondo: dorado y rosa */
+function crearBokeh(rgb){
+  const S = 128, c = document.createElement('canvas');
+  c.width = c.height = S;
+  const g = c.getContext('2d');
+  const r = g.createRadialGradient(S / 2, S / 2, 0, S / 2, S / 2, S / 2);
+  r.addColorStop(0, 'rgba(' + rgb + ',.10)');
+  r.addColorStop(0.7, 'rgba(' + rgb + ',.16)');
+  r.addColorStop(0.92, 'rgba(' + rgb + ',.34)');
+  r.addColorStop(1, 'rgba(' + rgb + ',0)');
+  g.fillStyle = r;
+  g.fillRect(0, 0, S, S);
   return c;
 }
 function crearSprites(){
   if (sprites) return;
   sprites = [0, 1, 2].map(banda => [0, 1, 2].map(tipo => TONOS.map((_, tono) => crearSprite(tipo, tono, banda))));
+  spritesBokeh = [crearBokeh('255,214,120'), crearBokeh('255,130,160')];
 }
 
 /* ---------- Las flores del jardín ---------- */
@@ -819,14 +914,14 @@ function q(a, c, b, s){ const u = 1 - s; return u * u * a + 2 * u * s * c + s * 
 function dq(a, c, b, s){ return 2 * (1 - s) * (c - a) + 2 * s * (b - c); }
 
 function nuevaFlor(x, y, rMin, rMax, instantanea){
-  const prof = Math.min(1, Math.max(0, y / H));          // 0 = arriba (lejos), 1 = abajo (cerca)
+  const prof = Math.min(1, Math.max(0, (y - horizonte) / (H - horizonte)));   // 0 = en el horizonte (lejos), 1 = abajo (cerca)
   const banda = prof < 0.33 ? 0 : prof < 0.66 ? 1 : 2;
   const r = (rMin + (rMax - rMin) * prof) * (0.85 + Math.random() * 0.3);
   const az = Math.random();
   const k = NIEBLA[banda];
   return {
     x, y, r, banda,
-    tipo: az < 0.4 ? 0 : az < 0.8 ? 1 : 2,               // 40% girasoles, 40% margaritas, 20% botones de oro
+    tipo: az < 0.4 ? 0 : az < 0.8 ? 1 : 2,               // 40% girasoles, 40% margaritas, 20% anémonas
     tono: (Math.random() * 3) | 0,
     bx: x + (Math.random() - 0.5) * r * 2.2, by: H + 30,  // donde nace el tallo (abajo, fuera de pantalla)
     curva: (Math.random() - 0.5) * r * 1.6,               // qué tan curvo es el tallo
@@ -835,35 +930,36 @@ function nuevaFlor(x, y, rMin, rMax, instantanea){
     fase: Math.random() * TAU,
     vel: 0.6 + Math.random() * 0.7,
     amp: 1.5 + r * 0.1,                                   // cuánto se mece con el viento
-    // Las de abajo brotan primero y el jardín va subiendo. Con -20 ya nace abierta.
+    // Las de abajo brotan primero y el campo va subiendo. Con -20 ya nace abierta.
     demora: instantanea ? -20 : (1 - prof) * 8 + Math.random() * 7,
     durTallo: 1.1 + (1 - prof) * 1.5,
-    hojas: banda > 0 && Math.random() < 0.85,
-    cTallo: mezcla('#2c5d3b', k), cTalloLuz: mezcla('#4d8f5b', k),
-    cHoja: mezcla('#2f6a3f', k), cHojaLuz: mezcla('#4d9a5b', k)
+    hojas: banda > 0 && Math.random() < 0.8,
+    cTallo: col('#3f8f5a', k, 0.85), cHoja: col('#2f7a4a', k, 0.75), cHojaLuz: col('#7fd29a', k, 0.6)
   };
 }
-/* Reparte las flores por toda la pantalla en filas: más chicas y pegadas arriba, más grandes abajo */
+/* Reparte las flores en filas desde el horizonte hacia abajo: chicas y lejanas arriba, grandes y cercanas abajo.
+   El cielo (con sol, rayos y estrellas) queda visible arriba y entre las flores. */
 function construirJardin(instantanea){
   flores = [];
+  horizonte = H * 0.17;
   const lado = Math.min(W, H);
-  const rMin = Math.max(10, lado * 0.035);
-  const rMax = Math.min(96, lado * 0.14);
-  let y = H * 0.02;
-  while (y < H * 1.02 && flores.length < 420){
-    const r0 = rMin + (rMax - rMin) * Math.min(1, y / H);
-    const n = Math.ceil(W / (r0 * 1.7));
+  const rMin = Math.max(9, lado * 0.03);
+  const rMax = Math.min(96, lado * 0.15);
+  let y = horizonte;
+  while (y < H * 1.02 && flores.length < 360){
+    const r0 = rMin + (rMax - rMin) * Math.min(1, (y - horizonte) / (H - horizonte));
+    const n = Math.ceil(W / (r0 * 2.0));
     for (let i = 0; i < n; i++){
       const x = (i + 0.15 + Math.random() * 0.7) * W / n;
-      const yy = Math.min(H * 1.02, y + (Math.random() - 0.5) * r0 * 0.9);
+      const yy = Math.max(horizonte, Math.min(H * 1.02, y + (Math.random() - 0.5) * r0 * 0.9));
       flores.push(nuevaFlor(x, yy, rMin, rMax, instantanea));
     }
-    y += r0 * 1.35 * (0.8 + Math.random() * 0.3);
+    y += r0 * 1.5 * (0.8 + Math.random() * 0.3);
   }
   flores.sort((a, b) => a.y - b.y);                      // primero las lejanas, luego las cercanas
 }
 
-/* Polen dorado que flota hacia arriba, pétalos amarillos que caen y chispas al tocar */
+/* Ambiente: estrellas, luces suaves (bokeh), polen dorado, pétalos que caen y chispas al tocar */
 function nuevoPolen(abajo){
   return {
     x: Math.random() * W, y: abajo ? H + 10 : Math.random() * H,
@@ -881,8 +977,18 @@ function nuevoPetaloJ(arriba){
   };
 }
 function construirAmbiente(){
-  polen = Array.from({length: W < 600 ? 26 : 46}, () => nuevoPolen(false));
-  petalosJ = Array.from({length: reducirMovimiento ? 8 : (W < 600 ? 14 : 24)}, () => nuevoPetaloJ(false));
+  const chico = W < 600;
+  polen = Array.from({length: chico ? 26 : 46}, () => nuevoPolen(false));
+  petalosJ = Array.from({length: reducirMovimiento ? 8 : (chico ? 14 : 24)}, () => nuevoPetaloJ(false));
+  estrellas = Array.from({length: chico ? 40 : 70}, () => ({
+    x: Math.random() * W, y: Math.random() * H * 0.34,
+    tam: 0.5 + Math.random(), vel: 0.8 + Math.random() * 1.6, fase: Math.random() * TAU
+  }));
+  bokeh = Array.from({length: chico ? 10 : 16}, () => ({
+    x: Math.random() * W, y: Math.random() * H, r: 22 + Math.random() * 50,
+    vx: (Math.random() - 0.5) * 0.12, vy: -(0.04 + Math.random() * 0.12),
+    a: 0.35 + Math.random() * 0.5, fase: Math.random() * TAU, tipo: Math.random() < 0.7 ? 0 : 1
+  }));
 }
 /* Al tocar la pantalla en el jardín salen pétalos dorados (como los corazones de la primera) */
 function estallidoJardin(x, y){
@@ -904,6 +1010,25 @@ function cuadroJardin(ahora){
   jctx.clearRect(0, 0, W, H);
   jctx.globalAlpha = 1;
   jctx.lineCap = 'round';
+  const ap = Math.min(1, t / 3);                               // el cielo aparece suavemente al inicio
+
+  // --- Cielo: estrellas que titilan y luces suaves (bokeh) que suben despacio ---
+  jctx.fillStyle = '#fff3d0';
+  for (const s of estrellas){
+    jctx.globalAlpha = ap * (0.15 + 0.5 * (0.5 + 0.5 * Math.sin(t * s.vel + s.fase)));
+    jctx.beginPath(); jctx.arc(s.x, s.y, s.tam, 0, TAU); jctx.fill();
+  }
+  jctx.globalCompositeOperation = 'lighter';
+  for (const b of bokeh){
+    if (!reducirMovimiento){
+      b.x += b.vx; b.y += b.vy;
+      if (b.y < -b.r){ b.y = H + b.r; b.x = Math.random() * W; }
+    }
+    jctx.globalAlpha = ap * b.a * (0.65 + 0.35 * Math.sin(t * 0.6 + b.fase));
+    jctx.drawImage(spritesBokeh[b.tipo], b.x - b.r, b.y - b.r, b.r * 2, b.r * 2);
+  }
+  jctx.globalCompositeOperation = 'source-over';
+  jctx.globalAlpha = 1;
 
   // --- Flores: tallo que crece, hojas y cabeza que se abre ---
   for (const f of flores){
@@ -914,10 +1039,9 @@ function cuadroJardin(ahora){
     const hx = f.x + sw, hy = f.y;                             // dónde queda la cabeza
     const cx = (f.bx + hx) / 2 + f.curva + sw * 0.35, cy = (f.by + hy) / 2;    // punto de control de la curva
 
-    // tallo
-    const gr = Math.max(1.2, f.r * 0.085);
+    // tallo: línea fina y elegante
     jctx.strokeStyle = f.cTallo;
-    jctx.lineWidth = gr;
+    jctx.lineWidth = Math.max(1, f.r * 0.045);
     jctx.beginPath();
     for (let i = 0; i <= 10; i++){
       const s = pt * i / 10;
@@ -925,20 +1049,15 @@ function cuadroJardin(ahora){
       if (i) jctx.lineTo(px, py); else jctx.moveTo(px, py);
     }
     jctx.stroke();
-    if (f.banda === 2){                                        // filo de luz en el tallo de las cercanas
-      jctx.strokeStyle = f.cTalloLuz;
-      jctx.lineWidth = gr * 0.3;
-      jctx.stroke();
-    }
 
-    // hojas (una a cada lado, dos tonos como todo lo demás)
+    // hojas finas (una a cada lado)
     if (f.hojas){
       for (let j = 0; j < 2; j++){
         const s0 = j ? 0.62 : 0.4;
         if (pt <= s0) continue;
         const px = q(f.bx, cx, hx, s0), py = q(f.by, cy, hy, s0);
         const ang = Math.atan2(dq(f.by, cy, hy, s0), dq(f.bx, cx, hx, s0)) + (j ? 0.9 : -0.9);
-        const L = f.r * 0.9 * Math.min(1, (pt - s0) * 3.5), w = L * 0.28;
+        const L = f.r * 0.8 * Math.min(1, (pt - s0) * 3.5), w = L * 0.22;
         jctx.save();
         jctx.translate(px, py);
         jctx.rotate(ang);
@@ -950,10 +1069,11 @@ function cuadroJardin(ahora){
       }
     }
 
-    // cabeza: empieza a abrirse justo cuando el tallo casi llega arriba
+    // cabeza: empieza a abrirse justo cuando el tallo casi llega arriba y después "respira" suavemente
     const b = a - f.durTallo * 0.85;
     if (b > 0){
-      const esc = (f.r / RADIO_SPRITE[f.banda]) * easeOutBack(Math.min(1, b / 1.3));
+      const respira = reducirMovimiento ? 1 : 1 + 0.02 * Math.sin(t * 1.3 + f.fase);
+      const esc = (f.r / RADIO_SPRITE[f.banda]) * easeOutBack(Math.min(1, b / 1.3)) * respira;
       const sp = sprites[f.banda][f.tipo][f.tono];
       jctx.save();
       jctx.translate(hx, hy);
