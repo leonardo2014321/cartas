@@ -287,7 +287,8 @@
    - La flecha llega al corazón alrededor del segundo 4.4
      (ver FLECHA_INICIO más abajo). El mensaje "Se clavan." está
      puesto justo en ese momento; si cambias el tiempo de la flecha,
-     ajusta también ese mensaje.
+     ajusta también ese mensaje. La música (love.mp3) NO depende de
+     esos tiempos: empieza sola en el instante exacto del impacto.
    ===================================================================== */
 const MENSAJES = [
   { en: 1.0,  dura: 2.6, texto: "Hay cosas que no se eligen." },
@@ -330,7 +331,9 @@ const NOMBRE = new URLSearchParams(location.search).get('para') || "";
    arranca con el primer toque, clic o tecla.                                        */
 const ARCHIVO_LATIDO  = "latido.mp3";
 const ARCHIVO_MUSICA  = "love.mp3";
-const MUSICA_ENTRA_EN = 4.5;   // segundo (desde el primer toque) en que entra la música
+const MUSICA_FUNDIDO  = 1.0;   // segundos que tarda love.mp3 en subir al volumen completo desde el instante en que se clava la flecha
+const MUSICA_ENTRA_EN = 8;     // RESPALDO: love.mp3 entra sola en este segundo si por alguna razón no se detecta el impacto.
+                               // Normalmente NO se usa: la música empieza en el instante exacto en que la flecha se clava.
 const LATIDO_FINAL    = 0;     // volumen (0 a 1) al que baja el latido cuando entra la música (0 = se apaga)
 const VOLUMEN_LATIDO  = 1;     // ← AQUÍ cambias el volumen del latido (0 a 1). 1 = a todo volumen, 0.5 = mitad, 0 = mudo
 const ARCHIVO_MUSICA_JARDIN = "love2.mp3";   // suena al tocar el botón de la pantalla de flores (misma carpeta que este HTML)
@@ -433,12 +436,13 @@ function sonarJardin(){
 }
 /* Entra la música y el latido se va apagando */
 function entrarMusica(){
+  if (musicaLibre) return;          // solo entra una vez (la llama el impacto de la flecha)
   musicaLibre = true;
-  audio.currentTime = 0;
+  audio.currentTime = 0;            // love.mp3 arranca desde el principio, justo en el impacto
   audio.volume = 0;
   aplicarSilencio();
   audio.play().catch(() => {});
-  fundir(audio, 1, 2.4);
+  fundir(audio, 1, MUSICA_FUNDIDO);
   fundir(audioLatido, LATIDO_FINAL, 3, () => { if (LATIDO_FINAL === 0) audioLatido.pause(); });
 }
 btnSonido.addEventListener('pointerdown', e => e.stopPropagation());
@@ -745,6 +749,7 @@ function dibujarSombras(ax, ay, dx, dy, a, b, sh){
 }
 
 function impactar(t, px, py){
+  entrarMusica();                   // 🎵 sincronía: love.mp3 empieza en el mismo instante en que la flecha se clava
   tImpacto = t;
   ix = px; iy = py;
   proxGota = t + 0.4;
@@ -1403,7 +1408,7 @@ function comenzar(){
   programarMensajes(MENSAJES);
   audio.muted = true;              // la música arranca en silencio (eso siempre se permite) y entra a su hora
   intentarAudio();                 // si el latido no estaba sonando todavía, arranca con este toque
-  setTimeout(entrarMusica, MUSICA_ENTRA_EN * 1000);
+  setTimeout(entrarMusica, MUSICA_ENTRA_EN * 1000);   // respaldo (entrarMusica ignora la llamada si ya sonó en el impacto)
   setTimeout(crearSprites, 2000);  // deja listas las flores mientras se ve el corazón: así el botón responde al instante
 }
 addEventListener('pointerdown', e => {
